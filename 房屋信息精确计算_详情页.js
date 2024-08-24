@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name         选房助手_房源信息精确计算_详情页
-// @namespace    http://tampermonkey.net/
+// @name         选房助手_房源信息精确计算_详情页 HomeSelectAssintant
+// @namespace   Violentmonkey Scripts
 // @description  选房助手_房源信息精确计算_详情页。在页面上的特定位置显示“平米”前数字的总和。用于计算套内面积。 同时计算得房率，显示得房率等级。便于快速判断房子的性价比。
 // @author       Leon
 // @match        https://*.ke.com/ershoufang/*.html
@@ -69,6 +69,7 @@
 // @note 1.0.2 优化获取每个房间面积的代码
 // @note 1.0.1 根据详情页内容计算单价以及得房率
 // @note 1.0.0 初始化创建
+// ==/UserScript==
 
 (function () {
     'use strict';

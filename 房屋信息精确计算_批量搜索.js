@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name         选房助手_房源信息精确计算_列表页 批量搜索。
-// @namespace   Violentmonkey Scripts
+// @name         选房助手_房源信息精确计算_列表页 批量搜索。 HomeSelectAssintant
+// @namespace   Violentmonkey Scripts v
 // @description  选房助手_房源信息精确计算_详情页。在页面上的特定位置显示“平米”前数字的总和。用于计算套内面积。 同时计算得房率，显示得房率等级。便于快速判断房子的性价比。
 // @match       https://*.ke.com/*/*/*/*
 // @match       https://*.ke.com/*/
@@ -10,7 +10,7 @@
 // @grant        GM_getValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @version     3.0.7
+// @version     3.0.5
 // @author      Leon
 // @description 2024/8/23 00:33:59
 
@@ -171,7 +171,7 @@
             var fieldNames = getUniqueFieldNames(items);
             var header = fieldNames.map(function (fieldName) {
                 return `"${fieldName}"`;
-            }).join('\t') + '\n';
+            }).join(',') + '\n';
 
             // 创建CSV的内容行
             var csvContent = items.map(function (item) {
@@ -180,7 +180,7 @@
                     // 如果值是对象或数组，转换为JSON字符串，否则直接转换为字符串
                     return typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value);
                 });
-                return values.join('\t');
+                return values.join(',');
             }).join('\n');
 
             // 合并标题行和内容行
@@ -618,7 +618,7 @@
         var dynatiData = `<p> ${displaySellYearInfo}    ${displayMortgageInfo}  ${displayHoldInfo}</p>`;
 
         popup.innerHTML += dynatiData
-        popup.innerHTML += `<p>单价: ${crab_res_in.cal_res.unitPrice} 万    实际单价: ${crab_res_in.cal_res.realPerice} 万  </p>`;
+        popup.innerHTML += `<p>单价:${crab_res_in.cal_res.unitPrice} 万  实际单价:${crab_res_in.cal_res.realPerice} 万  </p>`;
         popup.innerHTML += `<p>实际单价折扣率: ${crab_res_in.cal_res.realPericeRate} %</p>`;
 
         return popup
@@ -758,6 +758,42 @@
         }
 
         main();
+    }
+
+
+    function AreaHistoryDeal() {
+            // 创建一个空数组来存储提取的数据
+    var extractedData = [];
+
+    // 选择页面中的所有列表项，这里假设你的HTML结构是标准的，且已知具体的类名
+    var listItems = document.querySelectorAll('.listContent li');
+
+    // 遍历所有列表项
+    listItems.forEach(function(item) {
+        // 创建一个对象来保存当前列表项的数据
+        var itemData = {};
+
+        // 提取并保存每个列表项中的数据
+        // 假设每个列表项中都有一个<a>标签，且其包含的文本是我们需要的标题信息
+        var titleElement = item.querySelector('.title a');
+        if (titleElement) {
+            itemData.title = titleElement.textContent.trim();
+        }
+
+        // 重复上述过程，为其他需要的属性提取数据
+        // ...
+
+        // 将当前项的数据对象添加到数组中
+        extractedData.push(itemData);
+    });
+
+    // 将提取的数据转换为JSON字符串
+    var jsonData = JSON.stringify(extractedData, null, 2);
+
+    // 输出JSON字符串到控制台，你可以选择将其保存到文件或发送到服务器
+    console.log(jsonData);
+    // 这里可以添加代码将jsonData保存到文件或通过AJAX发送到服务器
+
     }
 
 
