@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         选房助手_房源信息精确计算_详情页 HomeSelectAssintant
+// @name         选房助手_房源信息精确计算_成交页 HomeSelectAssintant deal
 // @namespace   Violentmonkey Scripts
-// @description  选房助手_房源信息精确计算_详情页。在页面上的特定位置显示“平米”前数字的总和。用于计算套内面积。 同时计算得房率，显示得房率等级。便于快速判断房子的性价比。
+// @description  选房助手_房源信息精确计算_成交页。
 // @author       Leon
-// @match        https://*.ke.com/chengjiao/
+// @match        https://*.ke.com/chengjiao/*
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_listValues
@@ -96,7 +96,7 @@
         listItems.forEach(function (item) {
             // 获取label元素和其文本内容
             var label = item.querySelector('.label');
-            console.log(label);
+            // console.log(label);
 
             var labelContent = label ? label.textContent.trim() : '';
             console.log(labelContent);
@@ -117,65 +117,77 @@
 
 
     function get_tiny_house_info() {
+        // 初始化房屋信息JSON对象
+        var houseInfo = {};
+
         // 获取页面中的相关元素
         var priceContainer = document.querySelector('.price-container');
-        var roomInfo = document.querySelector('.mainInfo').textContent.trim();
-        var typeInfo = document.querySelector('.subInfo').textContent.trim();
-        var areaInfo = document.querySelector('.area .mainInfo').textContent.trim();
-        var communityName = document.querySelector('.communityName a').textContent.trim();
-        var areaName = document.querySelector('.areaName a').textContent.trim();
+        var roomInfo = document.querySelector('.mainInfo');
+        var typeInfo = document.querySelector('.subInfo');
+        var areaInfo = document.querySelector('.area .mainInfo');
+        var communityName = document.querySelector('.communityName a');
+        var areaName = document.querySelector('.areaName a');
 
+        // 检查是否成功选取了元素
+        if (priceContainer && roomInfo && typeInfo && areaInfo && communityName && areaName) {
+            // 获取页面中的相关文本内容
+            var roomInfoText = roomInfo.textContent.trim();
+            var typeInfoText = typeInfo.textContent.trim();
+            var areaInfoText = areaInfo.textContent.trim();
+            var communityNameText = communityName.textContent.trim();
+            var areaNameText = areaName.textContent.trim();
 
-        var 贝壳编号 = window.location.href.match(/\/(\d+)\.html/);
-        var url = window.location.href;
+            // 获取页面URL中的贝壳编号
+            var 贝壳编号 = window.location.href.match(/\/(\d+)\.html/);
+            var url = window.location.href;
 
-        // 构建房屋信息JSON对象
-        var houseInfo = {
-            '价格': {
-                '总价': priceContainer.querySelector('.total').textContent.trim() + '万',
-                '单价': priceContainer.querySelector('.unitPriceValue').textContent.trim() + '元/平米'
-            },
-            '房屋信息': {
-                '房间': roomInfo,
-                '类型': typeInfo,
-                '面积': areaInfo
-            },
-            '区域信息': {
-                '小区名称': communityName,
-                '所在区域': areaName
-            },
-            '贝壳编号': 贝壳编号,
-            'url': url
+            // 构建房屋信息JSON对象
+            houseInfo = {
+                '价格': {
+                    '总价': priceContainer.querySelector('.total').textContent.trim() + '万',
+                    '单价': priceContainer.querySelector('.unitPriceValue').textContent.trim() + '元/平米'
+                },
+                '房屋信息': {
+                    '房间': roomInfoText,
+                    '类型': typeInfoText,
+                    '面积': areaInfoText
+                },
+                '区域信息': {
+                    '小区名称': communityNameText,
+                    '所在区域': areaNameText
+                },
+                '贝壳编号': 贝壳编号 ? 贝壳编号[1] : null, // 确保提取的编号是字符串类型
+                'url': url
+            };
+        } else {
+            console.error('无法获取 tiny house 某些元素，请检查页面结构。');
+        }
 
-        };
+        // 输出房屋信息JSON对象到控制台
         console.log(houseInfo);
 
         // 返回房屋信息JSON对象
         return houseInfo;
     }
-
     get_tiny_house_info()
 
 
-    get_deal_info()
+    get_deal_info_list()
 
-    function get_deal_info() {
-
+    function get_deal_info_list() {
         // 选择目标元素
         var listContent = document.querySelector('#beike > div.dealListPage > div.content > div.leftContent > div:nth-child(4) > ul');
-
-        // 检查是否成功选取元素
         if (listContent) {
             // 初始化一个数组来保存所有房源信息
             var properties = [];
-
             // 获取所有列表项
             var items = listContent.querySelectorAll('li');
             items.forEach(function (item) {
                 // 创建一个对象来保存当前房源的信息
                 var property = {
+                    id: String(item.querySelector('a').getAttribute('href')).match(/\/(\d+)\.html/)[1],
                     viewEventId: item.getAttribute('data-view-evtid'),
-                    action: item.getAttribute('data-action'),
+                    // action: item.getAttribute('data-action'),
                     link: item.querySelector('a').getAttribute('href'),
                     title: item.querySelector('.title a').innerText,
                     address: item.querySelector('.address .houseInfo').innerText,
@@ -186,24 +198,84 @@
                     dealCycle: item.querySelector('.dealCycleeInfo .dealCycleTxt').innerText
                 };
 
-                // 将房源信息对象添加到数组中
-                properties.push(property);
-            });
+                // 检查是否所有需要的信息都存在
+                var semresblockid = document.querySelector('[data-component="C_semCard"] #sem_card').getAttribute('semresblockid');
 
+                if (property.link && property.title && property.address && property.dealDate && property.totalPrice && property.unitPrice && property.positionInfo && property.dealCycle) {
+                    // 将房源信息对象添加到数组中
+                    properties.push(property);
+                    property.id = semresblockid;
+                    GM_setValue(semresblockid, properties);  // 保存到缓存
+
+                } else {
+                    console.error('缺少某些信息，无法提取 deal 完整数据。');
+                }
+            });
             // 将数组转换为JSON字符串
             var propertiesJson = JSON.stringify(properties, null, 2);
-            return properties
+
             // 输出JSON字符串到控制台（或保存到文件、发送到服务器等）
-            console.log(propertiesJson);
+            console.log(properties);
+            return properties;
         } else {
-            console.error('未能找到 deal 目标元素 。');
+            console.error('未能找到目标 deal 元素。');
         }
     }
+
+
+    get_sale_info_list()
+
+    function get_sale_info_list() {
+
+        // 初始化一个数组来保存所有房源信息
+        var properties = [];
+
+        // 获取所有列表项
+        var items = document.querySelectorAll('.sellListContent li');
+        items.forEach(function (item) {
+            // 提取信息
+            var title = item.querySelector('.title a')?.textContent.trim() ?? '';
+            var address = item.querySelector('.positionInfo a')?.textContent.trim() ?? '';
+            var positionId = item.querySelector('.positionInfo a')?.href.match(/\/(\d+)\//)?.[1] ?? null;
+            var price = item.querySelector('.totalPrice')?.textContent.trim() ?? '';
+            var numericPrice = price.replace(/[^\d\.]/g, ''); // 移除所有非数字和小数点的字符
+            var unitPrice = item.querySelector('.unitPrice span')?.textContent.trim() ?? '';
+            var numericunitPrice = unitPrice.replace(/[^\d\.]/g, ''); // 移除所有非数字和小数点的字符
+
+            var link = item.querySelector('.title a')?.href ?? '';
+
+            // 使用正则表达式从链接中提取数字部分
+            var match = link.match(/\/(\d+)\.html/);
+            var id = match ? match[1] : null;
+
+            // 构建房源信息对象并添加到数组中
+            var propertyInfo = {
+                title: title,
+                address: address,
+                positionId: positionId,
+                // price: price,
+                numericPrice: numericPrice,
+                // unitPrice: unitPrice,
+                numericunitPrice: numericunitPrice,
+                link: link,
+                id: id
+            };
+            properties.push(propertyInfo);
+        });
+
+        // 将数组转换为JSON字符串
+        var propertiesJson = JSON.stringify(properties, null, 2);
+        console.log(properties);
+
+        return properties
+        // 输出JSON字符串到控制台（或保存到文件、发送到服务器等）
+    }
+
 
     // 假设我们要在id为"target"的元素后面显示计算结果
     var targetElement = document.getElementById('infoList');
     if (!targetElement) {
-        console.error('目标元素未找到');
+        console.error('目标元素 infoList 未找到');
         return;
     }
 //   2024年8月23日19:33:55  LEON 作废， 计算会有提取缺失，反复实验后重新计算。
@@ -274,14 +346,13 @@
     infoElement.innerHTML = '建筑面积: ' + buildingArea.toFixed(2) + ' 平米<br>得房率: ' + efficiencyRate.toFixed(2) + '%';
 
 
-    // var targetElement = document.querySelector('#beike > div.sellDetailPage > div:nth-child(6) > div.overview > div.content > div.houseInfo');
     var targetElement = document.querySelector('#introduction > div > div > div.transaction');
 
     if (targetElement) {
         targetElement.insertAdjacentElement('afterend', resultElement);
         targetElement.insertAdjacentElement('afterend', infoElement);
     } else {
-        console.error('目标元素未找到');
+        console.error('目标元素 文本间插入位置 未找到');
     }
     // 将结果元素添加到页面的特定位置后面
 

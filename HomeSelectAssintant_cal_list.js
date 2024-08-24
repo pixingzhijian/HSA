@@ -171,7 +171,7 @@
             var fieldNames = getUniqueFieldNames(items);
             var header = fieldNames.map(function (fieldName) {
                 return `"${fieldName}"`;
-            }).join(',') + '\n';
+            }).join('|') + '\n';
 
             // 创建CSV的内容行
             var csvContent = items.map(function (item) {
@@ -180,7 +180,7 @@
                     // 如果值是对象或数组，转换为JSON字符串，否则直接转换为字符串
                     return typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value);
                 });
-                return values.join(',');
+                return values.join('|');
             }).join('\n');
 
             // 合并标题行和内容行
@@ -202,6 +202,55 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url); // 清理URL对象
         });
+
+
+        var sale_info_list = get_sale_info_list()
+
+        function get_sale_info_list() {
+            //   获取在售房屋信息列表
+            // 初始化一个数组来保存所有房源信息
+            var properties = [];
+
+            // 获取所有列表项
+            var items = document.querySelectorAll('.sellListContent li');
+            items.forEach(function (item) {
+                // 提取信息
+                var title = item.querySelector('.title a')?.textContent.trim() ?? '';
+                var address = item.querySelector('.positionInfo a')?.textContent.trim() ?? '';
+                var positionId = item.querySelector('.positionInfo a')?.href.match(/\/(\d+)\//)?.[1] ?? null;
+                var price = item.querySelector('.totalPrice')?.textContent.trim() ?? '';
+                var numericPrice = price.replace(/[^\d\.]/g, ''); // 移除所有非数字和小数点的字符
+                var unitPrice = item.querySelector('.unitPrice span')?.textContent.trim() ?? '';
+                var numericunitPrice = unitPrice.replace(/[^\d\.]/g, ''); // 移除所有非数字和小数点的字符
+
+                var link = item.querySelector('.title a')?.href ?? '';
+
+                // 使用正则表达式从链接中提取数字部分
+                var match = link.match(/\/(\d+)\.html/);
+                var id = match ? match[1] : null;
+
+                // 构建房源信息对象并添加到数组中
+                var propertyInfo = {
+                    title: title,
+                    address: address,
+                    positionId: positionId,
+                    // price: price,
+                    numericPrice: numericPrice,
+                    // unitPrice: unitPrice,
+                    numericunitPrice: numericunitPrice,
+                    link: link,
+                    id: id
+                };
+                properties.push(propertyInfo);
+            });
+
+            // 将数组转换为JSON字符串
+            var propertiesJson = JSON.stringify(properties, null, 2);
+            console.log(properties);
+
+            return properties
+            // 输出JSON字符串到控制台（或保存到文件、发送到服务器等）
+        }
 
 
 // 递归函数，用于从嵌套的JSON对象中获取值
@@ -274,6 +323,8 @@
     async function insertPopupAfterLink(linkSelector) {
         // 获取所有匹配的链接元素
         let links = document.querySelectorAll(linkSelector);
+        // let links = document.querySelectorAll('#beike > div.sellListPage > div.content > div.leftContent > div:nth-child(4) > ul');
+        // let links = document.querySelectorAll('#beike > div.sellListPage > div.content > div.leftContent > div:nth-child(4) > ul > li > div > div.title > a');
         console.log('links', links);
 
         // let   links = await links.slice(0,3)
@@ -285,27 +336,21 @@
         }
         // 遍历所有链接，并在每个链接后面添加悬浮窗
         for (const link of links) {
-
-
             let popup = await findElementsAndExtractLinks(link);
-
 
             // 尝试将悬浮窗插入到链接元素后面
             try {
                 if (link.nextSibling) {
-
                     link.parentNode.insertBefore(popup, link.nextSibling);
 
                     // let popup = document.createElement('div');
 
                 } else {
                     link.parentNode.appendChild(popup);
-
                 }
             } catch (error) {
                 console.error('无法在链接后面添加悬浮窗:', error);
             }
-
         }
     }
 
@@ -315,7 +360,6 @@
 
 // 选择器用于定位特定的<a>元素
         const linkSelector = '#beike > div.sellListPage > div.content > div.leftContent > div:nth-child(4) > ul > li > div > div.title > a';
-
         await insertPopupAfterLink(linkSelector);
 
     });
@@ -361,8 +405,11 @@
             } else {
                 console.log('未找到缓存 开始爬虫  ', id_catch);
 
-                var doc = await findElementsAndExtractLinks_doc(link, match_id)
-
+                var doc = await findElementsAndExtractLinks_doc(link, xiaoqu_id)
+                if (sale_info_list.id) {
+                    console.log('sale_info_list', sale_info_list.id, sale_info_list.positionId);
+                }
+                // 非常重要， 组装全部数据
                 var crab_res = {};
                 crab_res.id = match_id
                 crab_res.is_catch = false
@@ -386,17 +433,9 @@
                 let popup = make_popup(crab_res)
 
                 popup.classList.add('popup'); // 添加一个类名以便于样式化
-                // 使悬浮窗可拖动
                 makeDraggable(popup);
                 document.body.appendChild(popup);
-                // 使悬浮窗显示
                 popup.style.display = 'block';
-
-                // resolve(popup)
-                // 获取特定元素的数据
-                // const totalElement = document.querySelector('#beike > div.sellDetailPage > div:nth-child(6) > div.overview > div.content > div.price-container > div > span.total');
-                // // 获取元素的文本内容并输出到控制台
-                // console.log('获取到的数据 并且插入:', totalElement.textContent.trim());
                 return popup
             } else {
                 console.log('未获取crab_res');
@@ -410,15 +449,16 @@
     }
 
 
-    async function findElementsAndExtractLinks_doc(link, match_id) {
-
+    async function findElementsAndExtractLinks_doc(link, xiaoqu_id) {
         return new Promise((resolve, reject) => {
             // 模拟异步操作完成
+            if (xiaoqu_id) {
+                link += xiaoqu_id
+            }
             setTimeout(() => {
                 // 配置请求
                 GM_xmlhttpRequest({
-                    method: 'GET',
-                    url: link,
+                    method: 'GET', url: link,
                     headers: {
                         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
                         "accept-language": "zh-CN,zh;q=0.9",
@@ -429,7 +469,7 @@
                         "sec-fetch-site": "same-origin",
                         "sec-fetch-user": "?1",
                         "upgrade-insecure-requests": "1",
-                        "cookie": "SECKEY_ABVK=kmLdD35iu07BMp2Id8I6R3e7I767bA+r056MeuZ3pilwhiP7U4Kikym+WRl+2uFzkhHnJx5PK7PGpiNC5xYTRg%3D%3D; BMAP_SECKEY=kmLdD35iu07BMp2Id8I6R3e7I767bA-r056MeuZ3pilC_SAOvpJqwNjCQQ7J_Aa0MTKbeufY0hCOSkjKjieMY04GsYkdQBWlE7d6-wSmvjTPc79DwQ2ftv7uXvnKsVx6Us90e_cqIAHPEvjTApALq_lCwSZx2To4OyfyZGluUv6hiArrICfR0Tr6F2euHDmPxJEAm7rVu9lX03rkYvG_Jw; lianjia_uuid=0e7b47c3-3ada-4596-bd7d-f2392a4b469e; Hm_lvt_b160d5571570fd63c347b9d4ab5ca610=1724338322; HMACCOUNT=CB8C84FEB193D705; sensorsdata2015jssdkcross=%7B%22distinct_id%22%3A%221917a92c0a58a8-0e00986ce3651-26021051-2073600-1917a92c0a6b13%22%2C%22%24device_id%22%3A%221917a92c0a58a8-0e00986ce3651-26021051-2073600-1917a92c0a6b13%22%2C%22props%22%3A%7B%22%24latest_traffic_source_type%22%3A%22%E4%BB%98%E8%B4%B9%E5%B9%BF%E5%91%8A%E6%B5%81%E9%87%8F%22%2C%22%24latest_referrer%22%3A%22https%3A%2F%2Fcn.bing.com%2F%22%2C%22%24latest_referrer_host%22%3A%22cn.bing.com%22%2C%22%24latest_search_keyword%22%3A%22%E6%9C%AA%E5%8F%96%E5%88%B0%E5%80%BC%22%2C%22%24latest_utm_source%22%3A%22biying%22%2C%22%24latest_utm_medium%22%3A%22pinzhuan%22%2C%22%24latest_utm_campaign%22%3A%22wymoren%22%2C%22%24latest_utm_content%22%3A%22biaotimiaoshu%22%2C%22%24latest_utm_term%22%3A%22biaoti%22%7D%7D; login_ucid=2000000002555866; lianjia_token=2.00128825b2682db78403250c83e83ea349; lianjia_token_secure=2.00128825b2682db78403250c83e83ea349; security_ticket=XzzqG/cRJ0Id9Xvc5hc5aSf2mZTca/uceIz2MyaFKkNdnFhtRvWgvte5n8Dn7h45U9D4zDMeyJZPnYhXQEr6bktoB0x/wGTdYKZQwr+grbn+rLHfUI6dIIeiEtI0Cv7Ryu0fSeIoXTkcQVIkoseozSg2YZdPHzKjrLWSskxZxuY=; ftkrc_=b4e8b2eb-4aba-4e40-9000-c48af317158a; lfrc_=27540efd-4273-4d74-a05d-fee54d65f285; digv_extends=%7B%22utmTrackId%22%3A%22%22%7D; crosSdkDT2019DeviceId=dyip8t-fcmjkf-jobxmcmtysyn0jf-ku23qsbnb; session_id=cd0a4144-353d-e62d-a1a4-35f19fa4246b; lianjia_ssid=85ed05b3-ffed-4aea-a61b-f3075d591198; Hm_lpvt_b160d5571570fd63c347b9d4ab5ca610=1724343749; srcid=eyJ0Ijoie1wiZGF0YVwiOlwiNzM5NzU1YWQ3NjY1YzllODIxNzc1ZGY4MjE3Njc3YjRlZDE1YmM3ZGU2ZTYzZWJmYmY5NTc1NDgzNTZkNjRhYzk2YjA3MDM2NmM3YzUwOGEyNWNjZmFjM2UxM2I5YzljZGIwZTY4ZWQxMTgzMjZlMjQ0NzNjNDRiODQwYzI2MTEwZDY2NDM0NzIyY2U2ZGNhYjYzZDM3YzRiMmUxOWIwZmRkMjFmODJiZGI0NTczOWI3YWYwODQ1YjRjZWI0NmQ1MzVjZDFmYTRjMGJhMDZkODc2MmVhMjBiNzNhMWVjYjI3ODUxZjk5MDNjNTk0OTM1ODgyODk5MGU5NDA5OWU1MDM3MjI5MmZjY2I0ZGE2NDdkZjYyY2Q4NDM3Yjk2ZDRhYmEzZTkxNjFmMzI3OGEyNDFjM2I0NmZlZDQ1MWQ0ZGVcIixcImtleV9pZFwiOlwiMVwiLFwic2lnblwiOlwiYTJjODlmYzZcIn0iLCJyIjoiaHR0cHM6Ly9zaC5rZS5jb20vZXJzaG91ZmFuZy8xMDcxMTA1MTkzMDAuaHRtbD9mYl9leHBvX2lkPTg3OTE0MTM0OTgwOTk3OTM5NiIsIm9zIjoid2ViIiwidiI6IjAuMSJ9; select_city=310000",
+                        "cookie": "SECKEY_ABVK=kmLdD35iu07BMp2Id8I6R3e7I767bA+r056MeuZ3pilwhiP7U4Kikym+WRl+2uFzkhHnJx5PK7PGpiNC5xYTRg%3D%3D; BMAP_SECKEY=kmLdD35iu07BMp2Id8I6R3e7I767bA-r056MeuZ3pilC_SAOvpJqwNjCQQ7J_Aa0MTKbeufY0hCOSkjKjieMY04GsYkdQBWlE7d6-wSmvjTPc79DwQ2ftv7uXvnKsVx6Us90e_cqIAHPEvjTApALq_lCwSZx2To4OyfyZGluUv6hiArrICfR0Tr6F2euHDmPxJEAm7rVu9lX03rkYvG_Jw; lianjia_uuid=0e7b47c3-3ada-4596-bd7d-f2392a4b469e; Hm_lvt_b160d5571570fd63c347b9d4ab5ca610=1724338322; HMACCOUNT=CB8C84FEB193D705; sensorsdata2015jssdkcross=%7B%22distinct_id%22%3A%221917a92c0a58a8-0e00986ce3651-26021051-2073600-1917a92c0a6b13%22%2C%22%24device_id%22%3A%221917a92c0a58a8-0e00986ce3651-26021051-2073600-1917a92c0a6b13%22%2C%22props%22%3A%7B%22%24latest_traffic_source_type%22%3A%22%E4%BB%98%E8%B4%B9%E5%B9%BF%E5%91%8A%E6%B5%81%E9%87%8F%22%2C%22%24latest_referrer%22%3A%22https%3A%2F%2Fcn.bing.com%2F%22%2C%22%24latest_referrer_host%22%3A%22cn.bing.com%22%2C%22%24latest_search_keyword%22%3A%22%E6%9C%AA%E5%8F%96%E5%88%B0%E5%80%BC%22%2C%22%24latest_utm_source%22%3A%22biying%22%2C%22%24latest_utm_medium%22%3A%22pinzhuan%22%2C%22%24latest_utm_campaign%22%3A%22wymoren%22%2C%22%24latest_utm_content%22%3A%22biaotimiaoshu%22%2C%22%24latest_utm_term%22%3A%22biaoti%22%7D%7D; login_ucid=2000000002555866; lianjia_token=2.00128825b2682db78403250c83e83ea349; lianjia_token_secure=2.00128825b2682db78403250c83e83ea349; security_ticket=XzzqG/cRJ0Id9Xvc5hc5aSf2mZTca/uceIz2MyaFKkNdnFhtRvWgvte5n8Dn7h45U9D4zDMeyJZPnYhXQEr6bktoB0x/wGTdYKZQwr+grbn+rLHfUI6dIIeiEtI0Cv7Ryu0fSeIoXTkcQVIkoseozSg2YZdPHzKjrLWSskxZxuY=; ftkrc_=b4e8b2eb-4aba-4e40-9000-c48af317158a; lfrc_=27540efd-4273-4d74-a05d-fee54d65f285; digv_extends=%7B%22utmTrackId%22%3A%22%22%7D; crosSdkDT2019DeviceId=dyip8t-fcmjkf-jobxmcmtysyn0jf-ku23qsbnb; session_id=cd0a4144-353d-e62d-a1a4-35f19fa4246b; lianjia_ssid=85ed05b3-ffed-4aea-a61b-f3075d591198; Hm_lpvt_b160d5571570fd63c347b9d4ab5ca610=1724343749; srcid=eyJ0Ijoie1wiZGF0YVwiOlwiNzM5NzU1YWQ3NjY1YzllODIxNzc1ZGY4MjE3Njc3YjRlZDE1YmM3ZGU2ZTYzZWJmYmY5NTc1NDgzNTZkNjRhYzk2YjA3MDM2NmM3YzUwOGEyNWNjZmFjM2UxM2I5YzljZGIwZTY4ZWQxMTgzMjZlMjQ0NzNjNDRiODQwYzI2MTEwZDY2NDM0NzIyY2U2ZGNhYjYzZDM3YzRiMmUxOWIwZmRkMjFmODJiZGI0NTczOWI3YWYwODQ1YjRjZWI0NmQ1MzVjZDFmYTRjMGJhMDZkODc2MmVhMjBiNzNhMWVjYjI3ODUxZjk5MDNjNTk0OTM1ODgyODk5MGU5NDA5OWU1MDM3MjI5MmZjY2I0ZGE2NDdkZjYyY2Q4NDM3Yjk2ZDRhYmEzZTkxNjFmMzI3OGEyNDFjM2I0NmZlZDQ1MWQ0ZGVcIixcImtleV9pZFwiOlwiMVwiLFwic2lnblwiOlwiYTJjODlmYzZcIn0iLCJyIjoiaHR0cHM6Ly9zaC5rZS5jb20vZXJzaG91ZmFuZy8xMDcxMTA1MTkzMDAuaHRtbD9mYl9leHBvX2lkPTg3OTE0MTM0OTgwOTk3OTM5NiIsIm9zIjoid2ViIiwidiI6IjAuMSJ9; select_city=310000"
                     },
                     onload: function (response) {
                         // 使用DOMParser解析返回的HTML字符串
@@ -675,27 +715,54 @@
     }
 
 
-    async function get_tiny_house_info(document) {
+    async function get_tiny_house_info() {
+        // 初始化房屋信息JSON对象
+        var houseInfo = {};
+
         // 获取页面中的相关元素
         var priceContainer = document.querySelector('.price-container');
-        var roomInfo = document.querySelector('.mainInfo').textContent.trim();
-        var typeInfo = document.querySelector('.subInfo').textContent.trim();
-        var areaInfo = document.querySelector('.area .mainInfo').textContent.trim();
-        var communityName = document.querySelector('.communityName a').textContent.trim();
-        var areaName = document.querySelector('.areaName a').textContent.trim();
+        var roomInfo = document.querySelector('.mainInfo');
+        var typeInfo = document.querySelector('.subInfo');
+        var areaInfo = document.querySelector('.area .mainInfo');
+        var communityName = document.querySelector('.communityName a');
+        var areaName = document.querySelector('.areaName a');
 
-        var 贝壳编号 = window.location.href.match(/\/(\d+)\.html/);
-        var url = window.location.href;
+        // 检查是否成功选取了元素
+        if (priceContainer && roomInfo && typeInfo && areaInfo && communityName && areaName) {
+            // 获取页面中的相关文本内容
+            var roomInfoText = roomInfo.textContent.trim();
+            var typeInfoText = typeInfo.textContent.trim();
+            var areaInfoText = areaInfo.textContent.trim();
+            var communityNameText = communityName.textContent.trim();
+            var areaNameText = areaName.textContent.trim();
 
-        // 构建房屋信息JSON对象
-        var houseInfo = {
-            '价格': {
-                '总价': priceContainer.querySelector('.total').textContent.trim() + '万',
-                '单价': priceContainer.querySelector('.unitPriceValue').textContent.trim() + '元/平米'
-            },
-            '房屋信息': {'房间': roomInfo, '类型': typeInfo, '面积': areaInfo},
-            '区域信息': {'小区名称': communityName, '所在区域': areaName}, '贝壳编号': 贝壳编号, 'url': url
-        };
+            // 获取页面URL中的贝壳编号
+            var 贝壳编号 = window.location.href.match(/\/(\d+)\.html/);
+            var url = window.location.href;
+
+            // 构建房屋信息JSON对象
+            houseInfo = {
+                '价格': {
+                    '总价': priceContainer.querySelector('.total').textContent.trim() + '万',
+                    '单价': priceContainer.querySelector('.unitPriceValue').textContent.trim() + '元/平米'
+                },
+                '房屋信息': {
+                    '房间': roomInfoText,
+                    '类型': typeInfoText,
+                    '面积': areaInfoText
+                },
+                '区域信息': {
+                    '小区名称': communityNameText,
+                    '所在区域': areaNameText
+                },
+                '贝壳编号': 贝壳编号 ? 贝壳编号[1] : null, // 确保提取的编号是字符串类型
+                'url': url
+            };
+        } else {
+            console.error('无法获取 tiny house 某些元素，请检查页面结构。');
+        }
+
+        // 输出房屋信息JSON对象到控制台
         console.log(houseInfo);
 
         // 返回房屋信息JSON对象
