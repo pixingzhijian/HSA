@@ -9,7 +9,7 @@
 // @grant        GM_getValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @version     3.1.1
+// @version     3.1.2
 // @author      Leon
 // @description 2024/8/23 00:33:59
 
@@ -84,7 +84,7 @@
 
      // 定义不同子目录对应的脚本文件路径
      var scriptPaths = {
-         '/ershoufang/': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_list.js',
+         '/ershoufang/*/': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_list.js',
          '/ershoufang/*.html': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_detail.js',
          '/chengjiao/': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_deal.js',
          // 更多子目录和对应的脚本文件...
