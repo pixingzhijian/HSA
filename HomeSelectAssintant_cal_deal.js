@@ -162,7 +162,7 @@
     function get_deal_info() {
 
         // 选择目标元素
-        var listContent = document.querySelector('ul.listContent[data-query-id="879789727682265088"]');
+        var listContent = document.querySelector('#beike > div.dealListPage > div.content > div.leftContent > div:nth-child(4) > ul');
 
         // 检查是否成功选取元素
         if (listContent) {
