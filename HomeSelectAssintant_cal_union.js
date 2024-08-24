@@ -10,7 +10,7 @@
 // @grant        GM_getValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @version     3.1.5
+// @version     3.1.6
 // @author      Leon
 // @description 2024/8/23 00:33:59
 
