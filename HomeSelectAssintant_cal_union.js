@@ -4,12 +4,13 @@
 // @description  选房助手_房源信息精确计算_详情页。在页面上的特定位置显示“平米”前数字的总和。用于计算套内面积。 同时计算得房率，显示得房率等级。便于快速判断房子的性价比。
 // @match       https://*.ke.com/*
 // @grant        GM_xmlhttpRequest
+// @grant        GM.xmlHttpRequest
 // @grant        GM_addStyle
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @version     3.1.4
+// @version     3.1.5
 // @author      Leon
 // @description 2024/8/23 00:33:59
 
@@ -100,21 +101,21 @@
 
     // 定义一个函数来加载脚本文件
     function loadScript(url) {
-        // 使用GM_xmlhttpRequest来异步加载脚本文件
-        GM_xmlhttpRequest({
+        // 使用GM.xmlHttpRequest来异步加载脚本文件
+        GM.xmlHttpRequest({
             method: 'GET',
             url: url,
-            onload: function(response) {
+            onload: function (response) {
                 // 创建一个新的script元素，并将脚本内容插入到页面中执行
                 var script = document.createElement('script');
                 script.textContent = response.responseText;
                 document.body.appendChild(script);
                 // 当脚本加载完成后，从body中移除script元素
-                script.onload = function() {
+                script.onload = function () {
                     document.body.removeChild(script);
                 };
             },
-            onerror: function(error) {
+            onerror: function (error) {
                 console.error('加载脚本失败:', error);
             }
         });
