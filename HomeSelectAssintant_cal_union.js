@@ -9,7 +9,7 @@
 // @grant        GM_getValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @version     3.1.3
+// @version     3.1.4
 // @author      Leon
 // @description 2024/8/23 00:33:59
 
@@ -75,12 +75,12 @@
 
 
 (function() {
-     'use strict';
+    'use strict';
 
-     // 获取当前页面的URL
-     var currentUrl = window.location.href;
+    // 当前页面的URL路径
+    var currentPath = window.location.pathname;
 
-     // 定义不同子目录对应的脚本文件路径
+    // 定义不同路径对应的脚本文件URL
      var scriptPaths = {
          '/ershoufang/*/': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_list.js',
          '/ershoufang/*': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_detail.js',
@@ -88,26 +88,36 @@
          // 更多子目录和对应的脚本文件...
      };
 
-     // 检查当前URL是否匹配我们的子目录
-     Object.keys(scriptPaths).forEach(function(path) {
-         if (currentUrl.includes(path)) {
-             // 如果匹配，使用GM_xmlhttpRequest加载对应的脚本文件
-             GM_xmlhttpRequest({
-                 method: 'GET',
-                 url: scriptPaths[path],
-                 onload: function(response) {
-                     // 在这里，你可以使用 eval(response.responseText) 来执行脚本
-                     // 注意：eval() 函数具有安全风险，仅在你信任脚本来源的情况下使用
-                     eval(response.responseText);
-                 },
-                 onerror: function(error) {
-                     console.error('加载脚本失败:', error);
-                 }
-             });
-         }
-     });
+    // 检查当前路径是否匹配scriptPaths中的某个模式
+    Object.keys(scriptPaths).forEach(function(pattern) {
+        // 使用正则表达式来匹配当前路径
+        var regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+        if (regex.test(currentPath)) {
+            // 如果匹配成功，加载对应的脚本文件
+            loadScript(scriptPaths[pattern]);
+        }
+    });
+
+    // 定义一个函数来加载脚本文件
+    function loadScript(url) {
+        // 使用GM_xmlhttpRequest来异步加载脚本文件
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: url,
+            onload: function(response) {
+                // 创建一个新的script元素，并将脚本内容插入到页面中执行
+                var script = document.createElement('script');
+                script.textContent = response.responseText;
+                document.body.appendChild(script);
+                // 当脚本加载完成后，从body中移除script元素
+                script.onload = function() {
+                    document.body.removeChild(script);
+                };
+            },
+            onerror: function(error) {
+                console.error('加载脚本失败:', error);
+            }
+        });
+    }
 })();
-
-
-
 
