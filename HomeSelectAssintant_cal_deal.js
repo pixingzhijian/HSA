@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         选房助手_房源信息精确计算_详情页 HomeSelectAssintant
+// @name         选房助手_房源信息精确计算_成交页 HomeSelectAssintant deal
 // @namespace   Violentmonkey Scripts
-// @description  选房助手_房源信息精确计算_详情页。在页面上的特定位置显示“平米”前数字的总和。用于计算套内面积。 同时计算得房率，显示得房率等级。便于快速判断房子的性价比。
+// @description  选房助手_房源信息精确计算_成交页。
 // @author       Leon
 // @match        https://*.ke.com/chengjiao/
 // @grant        GM_setValue
@@ -162,7 +162,7 @@
     function get_deal_info() {
 
         // 选择目标元素
-        var listContent = document.querySelector('#beike > div.dealListPage > div.content > div.leftContent > div:nth-child(4) > ul');
+        var listContent = document.querySelector('ul.listContent[data-query-id="879789727682265088"]');
 
         // 检查是否成功选取元素
         if (listContent) {
@@ -186,17 +186,23 @@
                     dealCycle: item.querySelector('.dealCycleeInfo .dealCycleTxt').innerText
                 };
 
-                // 将房源信息对象添加到数组中
-                properties.push(property);
+                // 检查是否所有需要的信息都存在
+                if (property.link && property.title && property.address && property.dealDate && property.totalPrice && property.unitPrice && property.positionInfo && property.dealCycle) {
+                    // 将房源信息对象添加到数组中
+                    properties.push(property);
+                } else {
+                    console.error('缺少某些信息，无法提取完整数据。');
+                }
             });
 
             // 将数组转换为JSON字符串
             var propertiesJson = JSON.stringify(properties, null, 2);
-            return properties
+
             // 输出JSON字符串到控制台（或保存到文件、发送到服务器等）
             console.log(propertiesJson);
+            return properties;
         } else {
-            console.error('未能找到 deal 目标元素 。');
+            console.error('未能找到目标元素。');
         }
     }
 

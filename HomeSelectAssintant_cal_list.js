@@ -675,33 +675,59 @@
     }
 
 
-    async function get_tiny_house_info(document) {
+    async function get_tiny_house_info() {
+        // 初始化房屋信息JSON对象
+        var houseInfo = {};
+
         // 获取页面中的相关元素
         var priceContainer = document.querySelector('.price-container');
-        var roomInfo = document.querySelector('.mainInfo').textContent.trim();
-        var typeInfo = document.querySelector('.subInfo').textContent.trim();
-        var areaInfo = document.querySelector('.area .mainInfo').textContent.trim();
-        var communityName = document.querySelector('.communityName a').textContent.trim();
-        var areaName = document.querySelector('.areaName a').textContent.trim();
+        var roomInfo = document.querySelector('.mainInfo');
+        var typeInfo = document.querySelector('.subInfo');
+        var areaInfo = document.querySelector('.area .mainInfo');
+        var communityName = document.querySelector('.communityName a');
+        var areaName = document.querySelector('.areaName a');
 
-        var 贝壳编号 = window.location.href.match(/\/(\d+)\.html/);
-        var url = window.location.href;
+        // 检查是否成功选取了元素
+        if (priceContainer && roomInfo && typeInfo && areaInfo && communityName && areaName) {
+            // 获取页面中的相关文本内容
+            var roomInfoText = roomInfo.textContent.trim();
+            var typeInfoText = typeInfo.textContent.trim();
+            var areaInfoText = areaInfo.textContent.trim();
+            var communityNameText = communityName.textContent.trim();
+            var areaNameText = areaName.textContent.trim();
 
-        // 构建房屋信息JSON对象
-        var houseInfo = {
-            '价格': {
-                '总价': priceContainer.querySelector('.total').textContent.trim() + '万',
-                '单价': priceContainer.querySelector('.unitPriceValue').textContent.trim() + '元/平米'
-            },
-            '房屋信息': {'房间': roomInfo, '类型': typeInfo, '面积': areaInfo},
-            '区域信息': {'小区名称': communityName, '所在区域': areaName}, '贝壳编号': 贝壳编号, 'url': url
-        };
+            // 获取页面URL中的贝壳编号
+            var 贝壳编号 = window.location.href.match(/\/(\d+)\.html/);
+            var url = window.location.href;
+
+            // 构建房屋信息JSON对象
+            houseInfo = {
+                '价格': {
+                    '总价': priceContainer.querySelector('.total').textContent.trim() + '万',
+                    '单价': priceContainer.querySelector('.unitPriceValue').textContent.trim() + '元/平米'
+                },
+                '房屋信息': {
+                    '房间': roomInfoText,
+                    '类型': typeInfoText,
+                    '面积': areaInfoText
+                },
+                '区域信息': {
+                    '小区名称': communityNameText,
+                    '所在区域': areaNameText
+                },
+                '贝壳编号': 贝壳编号 ? 贝壳编号[1] : null, // 确保提取的编号是字符串类型
+                'url': url
+            };
+        } else {
+            console.error('无法获取某些元素，请检查页面结构。');
+        }
+
+        // 输出房屋信息JSON对象到控制台
         console.log(houseInfo);
 
         // 返回房屋信息JSON对象
         return houseInfo;
     }
-
 
     async function save_house_info(jsonData) {
         // 假设你已经有了access_token和spreadsheetToken  https://wq4u3glemd.feishu.cn/sheets/DFgKsJ2brhPgMgtFwSYc9nBznBh?from=from_copylink
