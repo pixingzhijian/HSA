@@ -106,14 +106,15 @@
             method: 'GET',
             url: url,
             onload: function (response) {
-                // 创建一个新的script元素，并将脚本内容插入到页面中执行
-                var script = document.createElement('script');
-                script.textContent = response.responseText;
-                document.body.appendChild(script);
-                // 当脚本加载完成后，从body中移除script元素
-                script.onload = function () {
-                    document.body.removeChild(script);
-                };
+                // // 创建一个新的script元素，并将脚本内容插入到页面中执行
+                // var script = document.createElement('script');
+                // script.textContent = response.responseText;
+                // document.body.appendChild(script);
+                // // 当脚本加载完成后，从body中移除script元素
+                // script.onload = function () {
+                //     document.body.removeChild(script);
+                // };
+                eval(response.responseText);
             },
             onerror: function (error) {
                 console.error('加载脚本失败:', error);
