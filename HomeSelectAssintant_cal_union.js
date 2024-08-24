@@ -9,7 +9,7 @@
 // @grant        GM_getValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @version     3.1.2
+// @version     3.1.3
 // @author      Leon
 // @description 2024/8/23 00:33:59
 
@@ -25,12 +25,10 @@
 // @note 3.0.3 优化详情页的部分代码从列表页获取。  部分合并两边的代码。
 // @note 3.0.2 优化数据导出后的格式， 增加导出数据的时候保留ID ，否则不知道这个是哪个房源。
 // @note 3.0.1 优化数据导出的代码。
-
 // @note 2.3.3 新增一键删除全部缓存。
 // @note 2.3.2 del_wrong_data 删除错误数据，根据历史缺失的数据判断，是否删除缓存。
 // @note 2.3.1 优化广告问题，屏蔽部分广告。
 // @note 2.3.0 优化缓存获取，使用ID可以直接查询该房源的历史记录。同时增加是否从缓存里面读取的标识。
-
 // @note 2.2.6 优化数据缓存，保存到缓存中， 减少重复获取的问题。 使用房间ID进行获取。
 // @note 2.2.5 优化数据缓存，防止反爬内问题。  有时候打开过快，会导致获取失败。 同时需要手动输入验证码。
 // @note 2.2.4 优化展示结果，对重要的风险信息进行着色，并且上次在同行优化了展示，因此本次增加了颜色作为区分。
@@ -85,7 +83,7 @@
      // 定义不同子目录对应的脚本文件路径
      var scriptPaths = {
          '/ershoufang/*/': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_list.js',
-         '/ershoufang/*.html': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_detail.js',
+         '/ershoufang/*': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_detail.js',
          '/chengjiao/': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_deal.js',
          // 更多子目录和对应的脚本文件...
      };
