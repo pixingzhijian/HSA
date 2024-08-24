@@ -2,8 +2,7 @@
 // @name         选房助手_房源信息精确计算_多脚本合并版。 HomeSelectAssintant_union
 // @namespace   Violentmonkey Scripts v
 // @description  选房助手_房源信息精确计算_详情页。在页面上的特定位置显示“平米”前数字的总和。用于计算套内面积。 同时计算得房率，显示得房率等级。便于快速判断房子的性价比。
-// @match       https://*.ke.com/
-// @match       https://*.ke.com/
+// @match       https://*.ke.com/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @grant        GM_setValue
