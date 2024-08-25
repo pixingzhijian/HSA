@@ -204,54 +204,6 @@
         });
 
 
-
-        function get_sale_info_list() {
-            //   获取在售房屋信息列表
-            // 初始化一个数组来保存所有房源信息
-            var properties = [];
-
-            // 获取所有列表项
-            var items = document.querySelectorAll('.sellListContent li');
-            items.forEach(function (item) {
-                // 提取信息
-                var title = item.querySelector('.title a')?.textContent.trim() ?? '';
-                var address = item.querySelector('.positionInfo a')?.textContent.trim() ?? '';
-                var positionId = item.querySelector('.positionInfo a')?.href.match(/\/(\d+)\//)?.[1] ?? null;
-                var price = item.querySelector('.totalPrice')?.textContent.trim() ?? '';
-                var numericPrice = price.replace(/[^\d\.]/g, ''); // 移除所有非数字和小数点的字符
-                var unitPrice = item.querySelector('.unitPrice span')?.textContent.trim() ?? '';
-                var numericunitPrice = unitPrice.replace(/[^\d\.]/g, ''); // 移除所有非数字和小数点的字符
-
-                var link = item.querySelector('.title a')?.href ?? '';
-
-                // 使用正则表达式从链接中提取数字部分
-                var match = link.match(/\/(\d+)\.html/);
-                var id = match ? match[1] : null;
-
-                // 构建房源信息对象并添加到数组中
-                var propertyInfo = {
-                    title: title,
-                    address: address,
-                    positionId: positionId,
-                    // price: price,
-                    numericPrice: numericPrice,
-                    // unitPrice: unitPrice,
-                    numericunitPrice: numericunitPrice,
-                    link: link,
-                    id: id
-                };
-                properties.push(propertyInfo);
-            });
-
-            // 将数组转换为JSON字符串
-            var propertiesJson = JSON.stringify(properties, null, 2);
-            console.log(properties);
-
-            return properties
-            // 输出JSON字符串到控制台（或保存到文件、发送到服务器等）
-        }
-
-
 // 递归函数，用于从嵌套的JSON对象中获取值
         function getValueFromObject(obj, fieldName) {
             var fields = fieldName.split('.');
@@ -316,16 +268,61 @@
         document.body.appendChild(btn);
     }
 
+    function get_sale_info_list() {
+        //   获取在售房屋信息列表
+        // 初始化一个数组来保存所有房源信息
+        var properties = [];
+
+        // 获取所有列表项
+        var items = document.querySelectorAll('.sellListContent li');
+        items.forEach(function (item) {
+            // 提取信息
+            var title = item.querySelector('.title a')?.textContent.trim() ?? '';
+            var address = item.querySelector('.positionInfo a')?.textContent.trim() ?? '';
+            var positionId = item.querySelector('.positionInfo a')?.href.match(/\/(\d+)\//)?.[1] ?? null;
+            var price = item.querySelector('.totalPrice')?.textContent.trim() ?? '';
+            var numericPrice = price.replace(/[^\d\.]/g, ''); // 移除所有非数字和小数点的字符
+            var unitPrice = item.querySelector('.unitPrice span')?.textContent.trim() ?? '';
+            var numericunitPrice = unitPrice.replace(/[^\d\.]/g, ''); // 移除所有非数字和小数点的字符
+
+            var link = item.querySelector('.title a')?.href ?? '';
+
+            // 使用正则表达式从链接中提取数字部分
+            var match = link.match(/\/(\d+)\.html/);
+            var id = match ? match[1] : null;
+
+            // 构建房源信息对象并添加到数组中
+            var propertyInfo = {
+                title: title,
+                address: address,
+                positionId: positionId,
+                // price: price,
+                numericPrice: numericPrice,
+                // unitPrice: unitPrice,
+                numericunitPrice: numericunitPrice,
+                link: link,
+                id: id
+            };
+            properties.push(propertyInfo);
+        });
+
+        // 将数组转换为JSON字符串
+        var propertiesJson = JSON.stringify(properties, null, 2);
+        console.log(properties);
+
+        return properties
+        // 输出JSON字符串到控制台（或保存到文件、发送到服务器等）
+    }
 
 // 用于在每个链接后面插入悬浮窗的函数
-async function insertPopupAfterLink(linkSelector, sale_info_list) {
-    // 获取所有匹配的链接元素
-    let links = document.querySelectorAll(linkSelector);
-    console.log('links', links);
+    async function insertPopupAfterLink(linkSelector, sale_info_list) {
+        // 获取所有匹配的链接元素
+        let links = document.querySelectorAll(linkSelector);
+        console.log('links', links);
 
-    if (links.length === 0) {         // 如果没有找到任何链接，直接返回
-        console.log('未找到匹配的 links 链接元素');
-        return;
+        if (links.length === 0) {         // 如果没有找到任何链接，直接返回
+            console.log('未找到匹配的 links 链接元素');
+            return;
     }
 
     // 遍历所有链接，并在每个链接后面添加悬浮窗
