@@ -2,8 +2,7 @@
 // @name         选房助手_房源信息精确计算_列表页 批量搜索。 HomeSelectAssintant
 // @namespace   Violentmonkey Scripts v
 // @description  选房助手_房源信息精确计算_详情页。在页面上的特定位置显示“平米”前数字的总和。用于计算套内面积。 同时计算得房率，显示得房率等级。便于快速判断房子的性价比。
-// @match       https://*.ke.com/
-// @match       https://*.ke.com/
+// @match       https://*.ke.com/*
 // @grant       GM_xmlhttpRequest
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -314,6 +313,57 @@
         // 输出JSON字符串到控制台（或保存到文件、发送到服务器等）
     }
 
+
+    async function get_deal_info_list(document) {
+        // 选择目标元素
+        var listContent = document.querySelector('#beike > div.dealListPage > div.content > div.leftContent > div > ul');
+        if (listContent) {
+            // 初始化一个数组来保存所有房源信息
+            var properties = [];
+            // 获取所有列表项
+            var items = listContent.querySelectorAll('li');
+            items.forEach(function (item) {
+                // 创建一个对象来保存当前房源的信息
+                var property = {
+                    id: String(item.querySelector('a').getAttribute('href')).match(/\/(\d+)\.html/)[1],
+                    viewEventId: item.getAttribute('data-view-evtid'),
+                    // action: item.getAttribute('data-action'),
+                    link: item.querySelector('a').getAttribute('href'),
+                    title: item.querySelector('.title a').innerText,
+                    address: item.querySelector('.address .houseInfo').innerText,
+                    dealDate: item.querySelector('.dealDate').innerText,
+                    totalPrice: item.querySelector('.totalPrice .number').innerText + '万',
+                    unitPrice: item.querySelector('.unitPrice .number').innerText + '元/平',
+                    positionInfo: item.querySelector('.positionInfo').innerText,
+                    dealCycle: item.querySelector('.dealCycleeInfo .dealCycleTxt').innerText
+                };
+
+                // 检查是否所有需要的信息都存在
+                var semresblockid = document.querySelector('[data-component="C_semCard"] #sem_card').getAttribute('semresblockid');
+
+                if (property.link && property.title && property.address && property.dealDate && property.totalPrice && property.unitPrice && property.positionInfo && property.dealCycle) {
+                    // 将房源信息对象添加到数组中
+                    properties.push(property);
+                    property.id = semresblockid;
+                    GM_setValue(semresblockid, properties);  // 保存到缓存
+
+                } else {
+                    console.error('缺少某些信息，无法提取 deal 完整数据。');
+                }
+            });
+            // 将数组转换为JSON字符串
+            var propertiesJson = JSON.stringify(properties, null, 2);
+
+            // 输出JSON字符串到控制台（或保存到文件、发送到服务器等）
+            console.log(properties);
+            return properties;
+        } else {
+            return [];
+
+            console.error('未能找到目标 deal 元素。');
+        }
+    }
+
 // 用于在每个链接后面插入悬浮窗的函数
     async function insertPopupAfterLink(linkSelector, sale_info_list) {
         // 获取所有匹配的链接元素
@@ -323,28 +373,28 @@
         if (links.length === 0) {         // 如果没有找到任何链接，直接返回
             console.log('未找到匹配的 links 链接元素');
             return;
-    }
+        }
 
-    // 遍历所有链接，并在每个链接后面添加悬浮窗
-    for (let i = 0; i < links.length; i++) {
-        let link = links[i];
-        let positionId = sale_info_list[i].positionId; // 从sale_info_list中获取positionId
+        // 遍历所有链接，并在每个链接后面添加悬浮窗
+        for (let i = 0; i < links.length; i++) {
+            let link = links[i];
+            let sale_info = sale_info_list[i]; // 从sale_info_list中获取positionId
 
-        // 调用findElementsAndExtractLinks函数，并传入link和positionId
-        let popup = await findElementsAndExtractLinks(link, positionId);
+            // 调用findElementsAndExtractLinks函数，并传入link和positionId
+            let popup = await findElementsAndExtractLinks(link, sale_info);
 
-        // 尝试将悬浮窗插入到链接元素后面
-        try {
-            if (link.nextSibling) {
-                link.parentNode.insertBefore(popup, link.nextSibling);
-            } else {
-                link.parentNode.appendChild(popup);
+            // 尝试将悬浮窗插入到链接元素后面
+            try {
+                if (link.nextSibling) {
+                    link.parentNode.insertBefore(popup, link.nextSibling);
+                } else {
+                    link.parentNode.appendChild(popup);
+                }
+            } catch (error) {
+                console.error('无法在链接后面添加悬浮窗:', error);
             }
-        } catch (error) {
-            console.error('无法在链接后面添加悬浮窗:', error);
         }
     }
-}
 
 // 假设sale_info_list是一个对象数组，每个对象至少包含一个positionId属性
 // 你需要确保sale_info_list和links数组长度相同，且它们的元素是对应的
@@ -380,10 +430,11 @@
     }
 
 
-    async function findElementsAndExtractLinks(link) {
+    async function findElementsAndExtractLinks(link, sale_info) {
         // 异步操作
         const match = String(link).match(/\/(\d+)\.html/);
         const match_id = match[1]; // match[1] 是正则表达式中第一个括号捕获的内容
+        const positionId = sale_info.positionId   // 小区使用小区ID
 
         if (match) {
             let id_catch = GM_getValue(match_id)
@@ -401,8 +452,7 @@
                 crab_res.is_catch = true
             } else {
                 console.log('未找到缓存 开始爬虫  ', id_catch);
-
-                var doc = await findElementsAndExtractLinks_doc(link, xiaoqu_id)
+                var doc = await findElementsAndExtractLinks_doc(link, '')
 
                 // 非常重要， 组装全部数据
                 var crab_res = {};
@@ -422,10 +472,29 @@
                 console.log('未找到缓存 开始爬虫3*******', crab_res);
             }
 
+
+            let positionId_catch = GM_getValue(positionId)
+            if (positionId_catch) {
+                crab_res.is_positionId_catch = true
+                var deal_info_list = positionId_catch
+                console.log('小区成交信息 deal_info_list  已找到缓存', deal_info_list);
+
+            } else {
+                var addressCN = sale_info.address  // 查询整个小区使用小区的名字
+                var doc_xiaoqu = await findElementsAndExtractLinks_doc(link, addressCN)
+                console.log('小区成交信息 doc_xiaoqu  开始缓存doc', doc_xiaoqu);
+
+                var deal_info_list = await get_deal_info_list(doc_xiaoqu)
+
+                console.log('小区成交信息 deal_info_list  开始缓存', addressCN, deal_info_list);
+                GM_setValue(positionId, deal_info_list)
+
+            }
+
             if (crab_res) {
                 // 将悬浮窗添加到页面中
 
-                let popup = make_popup(crab_res)
+                let popup = make_popup(crab_res, deal_info_list)
 
                 popup.classList.add('popup'); // 添加一个类名以便于样式化
                 makeDraggable(popup);
@@ -444,11 +513,11 @@
     }
 
 
-    async function findElementsAndExtractLinks_doc(link, xiaoqu_id) {
+    async function findElementsAndExtractLinks_doc(link, addressCN) {
         return new Promise((resolve, reject) => {
             // 模拟异步操作完成
-            if (xiaoqu_id) {
-                link += xiaoqu_id
+            if (addressCN) {
+                link = 'https://sh.ke.com/chengjiao/rs' + addressCN
             }
             setTimeout(() => {
                 // 配置请求
@@ -573,7 +642,8 @@
     }
 
 
-    function make_popup(crab_res_in) {
+    function make_popup(crab_res_in, deal_info_list) {
+        // 创建悬浮窗元素
         // 创建悬浮窗元素
         let popup = document.createElement('div');
         popup.style.position = 'absolute';
@@ -592,6 +662,71 @@
         popup.style.height = 'auto';
         popup.style.textAlign = 'center';
         popup.style.borderRadius = '5px';
+        //
+        //  // 添加一个切换按钮来展开/折叠悬浮窗
+        //  let toggleButton = document.createElement('button');
+        //  toggleButton.textContent = '显示详情';
+        //  toggleButton.style.cursor = 'pointer';
+        //  toggleButton.onclick = function() {
+        //      // 切换悬浮窗的展开状态
+        //      if (popup.style.height === 'auto') {
+        //          popup.style.height = '0px'; // 折叠状态
+        //          toggleButton.textContent = '显示详情';
+        //      } else {
+        //          popup.style.height = 'auto'; // 展开状态
+        //          toggleButton.textContent = '隐藏详情';
+        //      }
+        //  };
+        //  popup.appendChild(toggleButton);
+        //
+        //  // 添加deal_info_list表格到悬浮窗中
+        //  let table = document.createElement('table');
+        //  table.style.width = '100%';
+        //  table.style.borderCollapse = 'collapse';
+        //
+        //  // 创建表头
+        //  let thead = document.createElement('thead');
+        //  let headerRow = document.createElement('tr');
+        //  let headers = ['项目', '信息']; // 根据deal_info_list的实际字段进行修改
+        //  headers.forEach(headerText => {
+        //      let th = document.createElement('th');
+        //      th.textContent = headerText;
+        //      th.style.border = '1px solid #ccc';
+        //      th.style.padding = '1px';
+        //      th.style.textAlign = 'left';
+        //      headerRow.appendChild(th);
+        //  });
+        //  thead.appendChild(headerRow);
+        //  table.appendChild(thead);
+        //
+        //  // 创建表格主体
+        //  let tbody = document.createElement('tbody');
+        //  delete deal_info_list['url']
+        // deal_info_list.forEach(info => {
+        //      let row = document.createElement('tr');
+        //      Object.keys(info).forEach(key => {
+        //          let td = document.createElement('td');
+        //          td.textContent = info[key];
+        //          td.style.border = '1px solid #ccc';
+        //          td.style.padding = '1px';
+        //          td.style.fontSize = '3px';
+        //          td.style.textAlign = 'left';
+        //          row.appendChild(td);
+        //      });
+        //      tbody.appendChild(row);
+        //  });
+        //  table.appendChild(tbody);
+        //
+        //  // 将表格添加到悬浮窗中
+        //  popup.appendChild(table);
+        //
+        //  // 将悬浮窗添加到文档中
+        //  document.body.appendChild(popup);
+        //
+        //  // 默认为展开状态
+        //  toggleButton.textContent = '隐藏详情';
+        //  popup.style.height = 'auto'; // 默认展开
+
 
         // 添加关闭按钮
         // let closeButton = document.createElement('span');
@@ -824,37 +959,37 @@
 
 
     function AreaHistoryDeal() {
-            // 创建一个空数组来存储提取的数据
-    var extractedData = [];
+        // 创建一个空数组来存储提取的数据
+        var extractedData = [];
 
-    // 选择页面中的所有列表项，这里假设你的HTML结构是标准的，且已知具体的类名
-    var listItems = document.querySelectorAll('.listContent li');
+        // 选择页面中的所有列表项，这里假设你的HTML结构是标准的，且已知具体的类名
+        var listItems = document.querySelectorAll('.listContent li');
 
-    // 遍历所有列表项
-    listItems.forEach(function(item) {
-        // 创建一个对象来保存当前列表项的数据
-        var itemData = {};
+        // 遍历所有列表项
+        listItems.forEach(function (item) {
+            // 创建一个对象来保存当前列表项的数据
+            var itemData = {};
 
-        // 提取并保存每个列表项中的数据
-        // 假设每个列表项中都有一个<a>标签，且其包含的文本是我们需要的标题信息
-        var titleElement = item.querySelector('.title a');
-        if (titleElement) {
-            itemData.title = titleElement.textContent.trim();
-        }
+            // 提取并保存每个列表项中的数据
+            // 假设每个列表项中都有一个<a>标签，且其包含的文本是我们需要的标题信息
+            var titleElement = item.querySelector('.title a');
+            if (titleElement) {
+                itemData.title = titleElement.textContent.trim();
+            }
 
-        // 重复上述过程，为其他需要的属性提取数据
-        // ...
+            // 重复上述过程，为其他需要的属性提取数据
+            // ...
 
-        // 将当前项的数据对象添加到数组中
-        extractedData.push(itemData);
-    });
+            // 将当前项的数据对象添加到数组中
+            extractedData.push(itemData);
+        });
 
-    // 将提取的数据转换为JSON字符串
-    var jsonData = JSON.stringify(extractedData, null, 2);
+        // 将提取的数据转换为JSON字符串
+        var jsonData = JSON.stringify(extractedData, null, 2);
 
-    // 输出JSON字符串到控制台，你可以选择将其保存到文件或发送到服务器
-    console.log(jsonData);
-    // 这里可以添加代码将jsonData保存到文件或通过AJAX发送到服务器
+        // 输出JSON字符串到控制台，你可以选择将其保存到文件或发送到服务器
+        console.log(jsonData);
+        // 这里可以添加代码将jsonData保存到文件或通过AJAX发送到服务器
 
     }
 

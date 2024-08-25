@@ -172,9 +172,9 @@
     get_tiny_house_info()
 
 
-    get_deal_info_list()
+    get_deal_info_list(document)
 
-    function get_deal_info_list() {
+    function get_deal_info_list(document) {
         // 选择目标元素
         var listContent = document.querySelector('#beike > div.dealListPage > div.content > div.leftContent > div:nth-child(4) > ul');
         if (listContent) {
