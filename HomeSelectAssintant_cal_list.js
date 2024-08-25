@@ -204,7 +204,6 @@
         });
 
 
-        var sale_info_list = get_sale_info_list()
 
         function get_sale_info_list() {
             //   获取在售房屋信息列表
@@ -313,54 +312,55 @@
             });
             alert('所有缓存的数据已被清空');
         });
-
         // 将按钮添加到页面的body中
         document.body.appendChild(btn);
     }
 
 
 // 用于在每个链接后面插入悬浮窗的函数
-    async function insertPopupAfterLink(linkSelector) {
-        // 获取所有匹配的链接元素
-        let links = document.querySelectorAll(linkSelector);
-        // let links = document.querySelectorAll('#beike > div.sellListPage > div.content > div.leftContent > div:nth-child(4) > ul');
-        // let links = document.querySelectorAll('#beike > div.sellListPage > div.content > div.leftContent > div:nth-child(4) > ul > li > div > div.title > a');
-        console.log('links', links);
+async function insertPopupAfterLink(linkSelector, sale_info_list) {
+    // 获取所有匹配的链接元素
+    let links = document.querySelectorAll(linkSelector);
+    console.log('links', links);
 
-        // let   links = await links.slice(0,3)
-
-        // 如果没有找到任何链接，直接返回
-        if (links.length === 0) {
-            console.log('未找到匹配的链接元素');
-            return;
-        }
-        // 遍历所有链接，并在每个链接后面添加悬浮窗
-        for (const link of links) {
-            let popup = await findElementsAndExtractLinks(link);
-
-            // 尝试将悬浮窗插入到链接元素后面
-            try {
-                if (link.nextSibling) {
-                    link.parentNode.insertBefore(popup, link.nextSibling);
-
-                    // let popup = document.createElement('div');
-
-                } else {
-                    link.parentNode.appendChild(popup);
-                }
-            } catch (error) {
-                console.error('无法在链接后面添加悬浮窗:', error);
-            }
-        }
+    if (links.length === 0) {         // 如果没有找到任何链接，直接返回
+        console.log('未找到匹配的 links 链接元素');
+        return;
     }
 
+    // 遍历所有链接，并在每个链接后面添加悬浮窗
+    for (let i = 0; i < links.length; i++) {
+        let link = links[i];
+        let positionId = sale_info_list[i].positionId; // 从sale_info_list中获取positionId
+
+        // 调用findElementsAndExtractLinks函数，并传入link和positionId
+        let popup = await findElementsAndExtractLinks(link, positionId);
+
+        // 尝试将悬浮窗插入到链接元素后面
+        try {
+            if (link.nextSibling) {
+                link.parentNode.insertBefore(popup, link.nextSibling);
+            } else {
+                link.parentNode.appendChild(popup);
+            }
+        } catch (error) {
+            console.error('无法在链接后面添加悬浮窗:', error);
+        }
+    }
+}
+
+// 假设sale_info_list是一个对象数组，每个对象至少包含一个positionId属性
+// 你需要确保sale_info_list和links数组长度相同，且它们的元素是对应的
 
     // 监听页面加载完成
     window.addEventListener('load', async function () {
 
 // 选择器用于定位特定的<a>元素
         const linkSelector = '#beike > div.sellListPage > div.content > div.leftContent > div:nth-child(4) > ul > li > div > div.title > a';
-        await insertPopupAfterLink(linkSelector);
+
+        var sale_info_list = get_sale_info_list()
+
+        await insertPopupAfterLink(linkSelector, sale_info_list);
 
     });
 
@@ -406,9 +406,7 @@
                 console.log('未找到缓存 开始爬虫  ', id_catch);
 
                 var doc = await findElementsAndExtractLinks_doc(link, xiaoqu_id)
-                if (sale_info_list.id) {
-                    console.log('sale_info_list', sale_info_list.id, sale_info_list.positionId);
-                }
+
                 // 非常重要， 组装全部数据
                 var crab_res = {};
                 crab_res.id = match_id
