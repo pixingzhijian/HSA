@@ -278,7 +278,13 @@
             // 提取信息
             var title = item.querySelector('.title a')?.textContent.trim() ?? '';
             var address = item.querySelector('.positionInfo a')?.textContent.trim() ?? '';
+            if (!address) {
+                var address = item.querySelector('.address a')?.textContent.trim() ?? '';
+            }
             var positionId = item.querySelector('.positionInfo a')?.href.match(/\/(\d+)\//)?.[1] ?? null;
+            if (!positionId) {
+                var positionId = item.querySelector('.address a')?.href.match(/\/(\d+)\//)?.[1] ?? null;
+            }
             var price = item.querySelector('.totalPrice')?.textContent.trim() ?? '';
             var numericPrice = price.replace(/[^\d\.]/g, ''); // 移除所有非数字和小数点的字符
             var unitPrice = item.querySelector('.unitPrice span')?.textContent.trim() ?? '';
@@ -307,10 +313,91 @@
 
         // 将数组转换为JSON字符串
         var propertiesJson = JSON.stringify(properties, null, 2);
-        console.log(properties);
+        console.log('get_sale_info_list', properties);
 
         return properties
         // 输出JSON字符串到控制台（或保存到文件、发送到服务器等）
+    }
+
+    function get_suggest_info_list() {
+        var properties = [];
+        // 获取指定节点下的所有列表项
+        var items = document.querySelectorAll('#lessResultIds .sellListContent li');
+        items.forEach(function (item) {
+            // 初始化当前房源信息对象
+            var propertyInfo = {};
+
+            // 提取标题中的链接和文本
+            var titleLinkNode = item.querySelector('.title a');
+            propertyInfo.title = titleLinkNode ? titleLinkNode.textContent.trim() : '';
+            propertyInfo.link = titleLinkNode ? titleLinkNode.href : '';
+
+            // 提取地址信息
+            var addressNode = item.querySelector('.address .houseInfo a');
+            propertyInfo.address = addressNode ? addressNode.textContent.trim() : '';
+
+            // 提取位置信息（楼层和建造年份）
+            var positionNode = item.querySelector('.positionInfo');
+            propertyInfo.position = positionNode ? positionNode.textContent.trim() : '';
+
+
+            var positionId = item.querySelector('.positionInfo a')?.href.match(/\/(\d+)\//)?.[1] ?? null;
+            if (!positionId) {
+                var positionId = item.querySelector('.address a')?.href.match(/\/(\d+)\//)?.[1] ?? null;
+                // var positionId = document.querySelector('.address a')?.href.match(/\/(\d+)\//)?.[1] ?? null;
+            }
+            propertyInfo.positionId = positionNode ? positionNode.textContent.trim() : '';
+
+            // 提取价格信息
+            var totalPriceNode = item.querySelector('.totalPrice');
+            propertyInfo.totalPrice = totalPriceNode ? totalPriceNode.textContent.trim() : '';
+
+            var unitPriceNode = item.querySelector('.unitPrice span');
+            propertyInfo.unitPrice = unitPriceNode ? unitPriceNode.textContent.trim() : '';
+
+            // 使用正则表达式从链接中提取数字部分
+            var match = propertyInfo.link.match(/\/(\d+)\.html/);
+            propertyInfo.id = match ? match[1] : null;
+
+            // 将当前房源信息添加到数组中
+            properties.push(propertyInfo);
+        });
+
+        // 将所有房源信息转换为JSON格式并输出
+        var propertiesJson = JSON.stringify(properties, null, 2);
+        console.log('get_suggest_info_list', properties);
+
+        return properties;
+    }
+
+
+    function get_suggest_node_list(document) {
+        var properties = [];
+        var items = document.querySelectorAll('#lessResultIds .sellListContent li');
+        items.forEach(function (item) {
+            var propertyInfo = {};
+            // 提取标题中的a标签节点
+            var titleLinkNode = item.querySelector('.title a');
+            propertyInfo.titleLinkNode = titleLinkNode ? titleLinkNode : null;
+            // // 提取地址信息
+            // var addressNode = item.querySelector('.address .houseInfo a');
+            // propertyInfo.addressNode = addressNode ? addressNode : null;
+            // // 提取位置信息（楼层和建造年份）
+            // var positionInfoNode = item.querySelector('.positionInfo');
+            // propertyInfo.positionInfoNode = positionInfoNode ? positionInfoNode : null;
+            // // 提取价格信息
+            // var totalPriceNode = item.querySelector('.totalPrice');
+            // propertyInfo.totalPriceNode = totalPriceNode ? totalPriceNode : null;
+            // var unitPriceNode = item.querySelector('.unitPrice span');
+            // propertyInfo.unitPriceNode = unitPriceNode ? unitPriceNode : null;
+            // 将当前房源信息添加到数组中
+            properties.push(propertyInfo);
+        });
+
+        // 将所有房源信息转换为JSON格式并输出
+        var propertiesJson = JSON.stringify(properties, null, 2);
+        console.log('get_suggest_node_list', properties);
+        return properties
     }
 
 
@@ -322,31 +409,25 @@
             var properties = [];
             // 获取所有列表项
             var items = listContent.querySelectorAll('li');
-            items.forEach(function (item) {
+            items.forEach(async function (item) {
                 // 创建一个对象来保存当前房源的信息
                 var property = {
                     id: String(item.querySelector('a').getAttribute('href')).match(/\/(\d+)\.html/)[1],
                     viewEventId: item.getAttribute('data-view-evtid'),
-                    // action: item.getAttribute('data-action'),
                     link: item.querySelector('a').getAttribute('href'),
-                    title: item.querySelector('.title a').innerText,
-                    address: item.querySelector('.address .houseInfo').innerText,
-                    dealDate: item.querySelector('.dealDate').innerText,
-                    totalPrice: item.querySelector('.totalPrice .number').innerText + '万',
-                    unitPrice: item.querySelector('.unitPrice .number').innerText + '元/平',
-                    positionInfo: item.querySelector('.positionInfo').innerText,
-                    dealCycle: item.querySelector('.dealCycleeInfo .dealCycleTxt').innerText
+                    title: item.querySelector('.title a').innerText.trim(),
+                    address: item.querySelector('.address .houseInfo').innerText.trim(),
+                    dealDate: item.querySelector('.dealDate').innerText.trim(),
+                    totalPrice: item.querySelector('.totalPrice .number').innerText.trim() + '万',
+                    unitPrice: item.querySelector('.unitPrice .number').innerText.trim() + '元/平',
+                    positionInfo: item.querySelector('.positionInfo').innerText.trim(),
+                    dealCycle: item.querySelector('.dealCycleeInfo .dealCycleTxt').innerText.trim()
                 };
 
                 // 检查是否所有需要的信息都存在
-                var semresblockid = document.querySelector('[data-component="C_semCard"] #sem_card').getAttribute('semresblockid');
-
                 if (property.link && property.title && property.address && property.dealDate && property.totalPrice && property.unitPrice && property.positionInfo && property.dealCycle) {
                     // 将房源信息对象添加到数组中
                     properties.push(property);
-                    property.id = semresblockid;
-                    GM_setValue(semresblockid, properties);  // 保存到缓存
-
                 } else {
                     console.error('缺少某些信息，无法提取 deal 完整数据。');
                 }
@@ -358,15 +439,15 @@
             console.log(properties);
             return properties;
         } else {
-            return [];
-
             console.error('未能找到目标 deal 元素。');
+            return [];
         }
     }
-
 // 用于在每个链接后面插入悬浮窗的函数
     async function insertPopupAfterLink(linkSelector, sale_info_list) {
         // 获取所有匹配的链接元素
+        // let links = document.querySelectorAll('#beike > div.sellListPage > div.content > div.leftContent > div:nth-child(4) > ul > li > div > div.title > a');
+        // let links = document.querySelectorAll('#lessResultIds > ul > li > div.info.clear > div.title > a');
         let links = document.querySelectorAll(linkSelector);
         console.log('links', links);
 
@@ -386,7 +467,9 @@
             // 尝试将悬浮窗插入到链接元素后面
             try {
                 if (link.nextSibling) {
-                    link.parentNode.insertBefore(popup, link.nextSibling);
+                    link.parentNode.insertBefore(popup[0], link.nextSibling);
+                    link.parentNode.insertBefore(popup[1], link.nextSibling);
+
                 } else {
                     link.parentNode.appendChild(popup);
                 }
@@ -403,11 +486,14 @@
     window.addEventListener('load', async function () {
 
 // 选择器用于定位特定的<a>元素
-        const linkSelector = '#beike > div.sellListPage > div.content > div.leftContent > div:nth-child(4) > ul > li > div > div.title > a';
-
+        const saleLinkSelector = '#beike > div.sellListPage > div.content > div.leftContent > div:nth-child(4) > ul > li > div > div.title > a';
         var sale_info_list = get_sale_info_list()
+        await insertPopupAfterLink(saleLinkSelector, sale_info_list);
 
-        await insertPopupAfterLink(linkSelector, sale_info_list);
+
+        const suggestLinkSelector = '#lessResultIds > ul > li > div.info.clear > div.title > a';
+        var suggest_info_list = get_suggest_info_list()
+        await insertPopupAfterLink(suggestLinkSelector, suggest_info_list);
 
     });
 
@@ -427,6 +513,22 @@
             containsUndefined: containsUndefined,
             containsNaN: containsNaN
         }
+    }
+
+
+    // 去重函数，基于对象的 id 属性
+    function uniqueByProperty(list, property) {
+        const uniqueList = [];
+        const propertySet = new Set();
+
+        list.forEach(item => {
+            const propertyValue = item[property];
+            if (!propertySet.has(propertyValue)) {
+                uniqueList.push(item);
+                propertySet.add(propertyValue);
+            }
+        });
+        return uniqueList
     }
 
 
@@ -473,11 +575,12 @@
             }
 
 
+            // 此处开始构造小区信息
             let positionId_catch = GM_getValue(positionId)
             if (positionId_catch) {
                 crab_res.is_positionId_catch = true
                 var deal_info_list = positionId_catch
-                console.log('小区成交信息 deal_info_list  已找到缓存', deal_info_list);
+                console.log('小区成交信息 deal_info_list  已找到缓存', positionId, deal_info_list);
 
             } else {
                 var addressCN = sale_info.address  // 查询整个小区使用小区的名字
@@ -495,12 +598,28 @@
                 // 将悬浮窗添加到页面中
 
                 let popup = make_popup(crab_res, deal_info_list)
+                var unique_deal_info_list = uniqueByProperty(deal_info_list, 'id').map(item => {
+                    return {
+                        id: item.id,
+                        // viewEventId:15431,
+                        // link:https://sh.ke.com/chengjiao/107109353602.html,
+                        dealDate: item.dealDate,
+                        totalPrice: item.totalPrice,
+                        unitPrice: item.unitPrice,
+                        title: item.title,
+                        address: item.address,
+                        // positionInfo:中楼层(共35层) 2002年塔楼,
+                        // dealCycle:挂牌539万\n                                                                                                    成交周期20天};
+                    };
+                })
+                let DealInfoPopup = showDealInfoPopup(unique_deal_info_list);
 
-                popup.classList.add('popup'); // 添加一个类名以便于样式化
-                makeDraggable(popup);
-                document.body.appendChild(popup);
-                popup.style.display = 'block';
-                return popup
+
+                // popup.classList.add('popup'); // 添加一个类名以便于样式化
+                // makeDraggable(popup);
+                // document.body.appendChild(popup);
+                // popup.style.display = 'block';
+                return [popup, DealInfoPopup]
             } else {
                 console.log('未获取crab_res');
                 // GM_deleteValue(key);
@@ -553,33 +672,33 @@
 
 
     // 使元素可拖动的函数
-    function makeDraggable(element) {
-        let isDragging = false;
-        let startX, startY, initialX, initialY;
-
-        // 鼠标按下事件
-        element.addEventListener('mousedown', function (e) {
-            isDragging = true;
-            initialX = e.clientX - startX;
-            initialY = e.clientY - startY;
-        });
-
-        // 鼠标移动事件
-        document.addEventListener('mousemove', function (e) {
-            if (isDragging) {
-                e.preventDefault(); // 阻止默认行为，比如选择文本
-                startX = e.clientX;
-                startY = e.clientY;
-                element.style.top = (startY - initialY) + 'px';
-                element.style.left = (startX - initialX) + 'px';
-            }
-        });
-
-        // 鼠标释放事件
-        document.addEventListener('mouseup', function (e) {
-            isDragging = false;
-        });
-    }
+    // function makeDraggable(element) {
+    //     let isDragging = false;
+    //     let startX, startY, initialX, initialY;
+    //
+    //     // 鼠标按下事件
+    //     element.addEventListener('mousedown', function (e) {
+    //         isDragging = true;
+    //         initialX = e.clientX - startX;
+    //         initialY = e.clientY - startY;
+    //     });
+    //
+    //     // 鼠标移动事件
+    //     document.addEventListener('mousemove', function (e) {
+    //         if (isDragging) {
+    //             e.preventDefault(); // 阻止默认行为，比如选择文本
+    //             startX = e.clientX;
+    //             startY = e.clientY;
+    //             element.style.top = (startY - initialY) + 'px';
+    //             element.style.left = (startX - initialX) + 'px';
+    //         }
+    //     });
+    //
+    //     // 鼠标释放事件
+    //     document.addEventListener('mouseup', function (e) {
+    //         isDragging = false;
+    //     });
+    // }
 
 
     /**
@@ -642,8 +761,86 @@
     }
 
 
+    // 使悬浮窗可拖动的函数
+    function makeDraggable(element) {
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
+        element.onmousedown = function (event) {
+            isDragging = true;
+            initialX = event.clientX - element.offsetLeft;
+            initialY = event.clientY - element.offsetTop;
+            document.onmousemove = function moveAt(e) {
+                if (isDragging) {
+                    element.style.left = e.clientX - initialX + 'px';
+                    element.style.top = e.clientY - initialY + 'px';
+                }
+            };
+        };
+        document.onmouseup = function () {
+            isDragging = false;
+            document.onmousemove = null;
+        };
+    }
+
+
+    // 创建一个新的悬浮窗并展示 deal_info_list 的函数
+    function showDealInfoPopup(deal_info_list) {
+        // 创建新的悬浮窗元素
+        let detailsPopup = document.createElement('div');
+        detailsPopup.style.position = 'absolute';
+        detailsPopup.style.top = '5px'; // 根据需要调整位置
+        detailsPopup.style.left = '5px'; // 根据需要调整位置
+        detailsPopup.style.backgroundColor = '#fff';
+        detailsPopup.style.padding = '10px';
+        detailsPopup.style.border = '1px solid #ccc';
+        detailsPopup.style.zIndex = '9999';
+        detailsPopup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
+        detailsPopup.style.opacity = '0.9';
+        detailsPopup.style.fontSize = '7px';
+        detailsPopup.style.fontFamily = 'Arial, sans-serif';
+        detailsPopup.style.color = '#333';
+        // detailsPopup.style.width = '300px'; // 根据需要调整宽度
+        detailsPopup.style.height = 'auto'; // 默认高度为auto，以便内容可以自适应
+        detailsPopup.style.textAlign = 'left';
+        detailsPopup.style.borderRadius = '5px';
+        detailsPopup.style.display = 'block'; // 默认显示悬浮窗
+
+        // 添加内容展示 deal_info_list 中每个对象的所有键值对
+        let content = document.createElement('div');
+        content.innerHTML = `<h3>详细信息 </h3>`;
+        deal_info_list.forEach(info => {
+            let itemDiv = document.createElement('div');
+            itemDiv.innerHTML = '<strong></strong>';
+            for (let key in info) {
+                // delete info['address']
+                if (info.hasOwnProperty(key)) {
+                    let itemKey = document.createElement('span');
+                    itemKey.style.fontWeight = 'bold';
+                    itemKey.textContent = `${key}:`;
+                    let itemValue = document.createElement('span');
+                    itemValue.textContent = `${info[key]}  ㅤ`;
+                    // itemDiv.appendChild(itemKey);
+                    itemDiv.appendChild(itemValue);
+                    itemDiv.appendChild(document.createTextNode('\n')); // 添加换行
+                }
+            }
+            content.appendChild(itemDiv);
+        });
+        detailsPopup.appendChild(content);
+
+        // 将新的悬浮窗添加到页面中
+        document.body.appendChild(detailsPopup);
+
+        // 使新的悬浮窗可拖动
+        makeDraggable(detailsPopup);
+        return detailsPopup;
+    }
+
+// 调用 make_popup 函数以创建初始悬浮窗
+// make_popup(crab_res_in, deal_info_list);
+
+
     function make_popup(crab_res_in, deal_info_list) {
-        // 创建悬浮窗元素
         // 创建悬浮窗元素
         let popup = document.createElement('div');
         popup.style.position = 'absolute';
@@ -659,91 +856,36 @@
         popup.style.fontFamily = 'Arial, sans-serif';
         popup.style.color = '#333';
         popup.style.width = '200px';
-        popup.style.height = 'auto';
+        popup.style.height = 'auto'; // 默认高度为auto，以便内容可以自适应
         popup.style.textAlign = 'center';
         popup.style.borderRadius = '5px';
-        //
-        //  // 添加一个切换按钮来展开/折叠悬浮窗
-        //  let toggleButton = document.createElement('button');
-        //  toggleButton.textContent = '显示详情';
-        //  toggleButton.style.cursor = 'pointer';
-        //  toggleButton.onclick = function() {
-        //      // 切换悬浮窗的展开状态
-        //      if (popup.style.height === 'auto') {
-        //          popup.style.height = '0px'; // 折叠状态
-        //          toggleButton.textContent = '显示详情';
-        //      } else {
-        //          popup.style.height = 'auto'; // 展开状态
-        //          toggleButton.textContent = '隐藏详情';
-        //      }
-        //  };
-        //  popup.appendChild(toggleButton);
-        //
-        //  // 添加deal_info_list表格到悬浮窗中
-        //  let table = document.createElement('table');
-        //  table.style.width = '100%';
-        //  table.style.borderCollapse = 'collapse';
-        //
-        //  // 创建表头
-        //  let thead = document.createElement('thead');
-        //  let headerRow = document.createElement('tr');
-        //  let headers = ['项目', '信息']; // 根据deal_info_list的实际字段进行修改
-        //  headers.forEach(headerText => {
-        //      let th = document.createElement('th');
-        //      th.textContent = headerText;
-        //      th.style.border = '1px solid #ccc';
-        //      th.style.padding = '1px';
-        //      th.style.textAlign = 'left';
-        //      headerRow.appendChild(th);
-        //  });
-        //  thead.appendChild(headerRow);
-        //  table.appendChild(thead);
-        //
-        //  // 创建表格主体
-        //  let tbody = document.createElement('tbody');
-        //  delete deal_info_list['url']
-        // deal_info_list.forEach(info => {
-        //      let row = document.createElement('tr');
-        //      Object.keys(info).forEach(key => {
-        //          let td = document.createElement('td');
-        //          td.textContent = info[key];
-        //          td.style.border = '1px solid #ccc';
-        //          td.style.padding = '1px';
-        //          td.style.fontSize = '3px';
-        //          td.style.textAlign = 'left';
-        //          row.appendChild(td);
-        //      });
-        //      tbody.appendChild(row);
-        //  });
-        //  table.appendChild(tbody);
-        //
-        //  // 将表格添加到悬浮窗中
-        //  popup.appendChild(table);
-        //
-        //  // 将悬浮窗添加到文档中
-        //  document.body.appendChild(popup);
-        //
-        //  // 默认为展开状态
-        //  toggleButton.textContent = '隐藏详情';
-        //  popup.style.height = 'auto'; // 默认展开
+        popup.style.display = 'block'; // 默认显示悬浮窗
+        popup.classList.add('popup'); // 添加一个类名以便于样式化
+        popup.id = 'popup-sale-' + crab_res_in.id + '-' + Date.now();
+
+        // 添加按钮，用于打开新的悬浮窗并展示 deal_info_list
+        let openDetailsButton = document.createElement('button');
+        openDetailsButton.textContent = '详';
+        openDetailsButton.style.position = 'absolute';
+        openDetailsButton.style.top = '5px';
+        openDetailsButton.style.right = '10px';
+        openDetailsButton.style.cursor = 'pointer';
+        openDetailsButton.style.color = '#fff';
+        openDetailsButton.style.backgroundColor = '#333';
+        openDetailsButton.style.padding = '5px 10px';
+        openDetailsButton.style.borderRadius = '5px';
+        openDetailsButton.style.fontSize = '12px';
+        openDetailsButton.onclick = function () {
+            // 创建并显示新的悬浮窗
+
+        };
+        popup.appendChild(openDetailsButton);
 
 
-        // 添加关闭按钮
-        // let closeButton = document.createElement('span');
-        // closeButton.textContent = '×';
-        // closeButton.style.position = 'absolute';
-        // closeButton.style.top = '-10px';
-        // closeButton.style.right = '-10px';
-        // closeButton.style.cursor = 'pointer';
-        // closeButton.style.color = '#fff';
-        // closeButton.style.backgroundColor = '#333';
-        // closeButton.style.padding = '5px 10px';
-        // closeButton.style.borderRadius = '50%';
-        // closeButton.style.fontSize = '12px';
-        // closeButton.addEventListener('click', function () {
-        //     popup.style.display = 'none';
-        // });
-        // popup.appendChild(closeButton);
+        makeDraggable(popup); // 使悬浮窗可拖动
+
+        // 将悬浮窗添加到页面中
+        // document.body.appendChild(popup);
 
 
         // 根据得房率的范围设置不同的颜色
@@ -788,8 +930,8 @@
         var dynatiData = `<p> ${displaySellYearInfo}    ${displayMortgageInfo}  ${displayHoldInfo}</p>`;
 
         popup.innerHTML += dynatiData
-        popup.innerHTML += `<p>单价:${crab_res_in.cal_res.unitPrice} 万  实际单价:${crab_res_in.cal_res.realPerice} 万  </p>`;
-        popup.innerHTML += `<p>实际单价折扣率: ${crab_res_in.cal_res.realPericeRate} %</p>`;
+        popup.innerHTML += `<p>单价:${crab_res_in.cal_res.unitPrice} 万  建面单价:${crab_res_in.cal_res.realPerice} 万  </p>`;
+        popup.innerHTML += `<p>建面单价折扣率: ${crab_res_in.cal_res.realPericeRate} %</p>`;
 
         return popup
     }

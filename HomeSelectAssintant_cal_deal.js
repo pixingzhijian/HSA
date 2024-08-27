@@ -182,10 +182,14 @@
             var properties = [];
             // 获取所有列表项
             var items = listContent.querySelectorAll('li');
+            var semresblockElement = document.querySelector('[data-component="C_semCard"] #sem_card');
+            var semresblockid = semresblockElement ? semresblockElement.getAttribute('semresblockid') : null;
+
             items.forEach(function (item) {
                 // 创建一个对象来保存当前房源的信息
                 var property = {
                     id: String(item.querySelector('a').getAttribute('href')).match(/\/(\d+)\.html/)[1],
+                    semresblockid: semresblockid,
                     viewEventId: item.getAttribute('data-view-evtid'),
                     // action: item.getAttribute('data-action'),
                     link: item.querySelector('a').getAttribute('href'),
@@ -199,12 +203,11 @@
                 };
 
                 // 检查是否所有需要的信息都存在
-                var semresblockid = document.querySelector('[data-component="C_semCard"] #sem_card').getAttribute('semresblockid');
 
                 if (property.link && property.title && property.address && property.dealDate && property.totalPrice && property.unitPrice && property.positionInfo && property.dealCycle) {
                     // 将房源信息对象添加到数组中
                     properties.push(property);
-                    property.id = semresblockid;
+                    property.semresblockid = semresblockid;
                     GM_setValue(semresblockid, properties);  // 保存到缓存
 
                 } else {

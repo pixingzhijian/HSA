@@ -13,6 +13,7 @@
 // @version     3.1.11
 // @author      Leon
 // @description 2024/8/23 00:33:59
+// @downloadURL http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_union.js
 
 // @note 6.0.0 TODO:运用模型选房，运用机器学习模型进行评分
 // @note 5.0.0 TODO:快捷可视化分析
