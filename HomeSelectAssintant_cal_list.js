@@ -807,7 +807,10 @@
 
         // 添加内容展示 deal_info_list 中每个对象的所有键值对
         let content = document.createElement('div');
-        content.innerHTML = `<h3>详细信息    ${deal_info_list.is_positionId_catch}</h3>`;
+        if (deal_info_list.is_positionId_catch) {
+            content.innerHTML = `<h3>详细信息   (${deal_info_list.is_positionId_catch})</h3>`;
+        }
+        content.innerHTML = `<h3>详细信息   (实时)</h3>`;
         deal_info_list.forEach(info => {
             let itemDiv = document.createElement('div');
             itemDiv.innerHTML = '<strong></strong>';
