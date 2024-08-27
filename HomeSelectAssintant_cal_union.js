@@ -10,7 +10,7 @@
 // @grant        GM_getValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @version     4.0.0
+// @version     4.0.1
 // @author      Leon
 // @description 2024/8/23 00:33:59
 // @downloadURL http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_union.js
@@ -18,6 +18,7 @@
 // @note 6.0.0 TODO:运用模型选房，运用机器学习模型进行评分
 // @note 5.0.1 TODO:快捷可视化分析
 // @note 5.0.0 TODO: 远端保存缓存数据，减轻服务器压力
+// @note 4.0.0 修复小区缓存问题
 // @note 4.0.0 完成 小区成交批量查询 与页面显示！！ 新增推荐房源检测并查询！
 
 

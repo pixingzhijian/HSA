@@ -576,10 +576,10 @@
 
 
             // 此处开始构造小区信息
-            let positionId_catch = GM_getValue(positionId)
-            if (positionId_catch) {
-                crab_res.is_positionId_catch = true
-                var deal_info_list = positionId_catch
+            let deal_info_list_catch = GM_getValue(positionId)
+            if (deal_info_list_catch) {
+                deal_info_list_catch.is_positionId_catch = true
+                var deal_info_list = deal_info_list_catch
                 console.log('小区成交信息 deal_info_list  已找到缓存', positionId, deal_info_list);
 
             } else {
@@ -594,7 +594,7 @@
 
             }
 
-            if (crab_res) {
+            if (deal_info_list) {
                 // 将悬浮窗添加到页面中
 
                 let popup = make_popup(crab_res, deal_info_list)
@@ -807,7 +807,7 @@
 
         // 添加内容展示 deal_info_list 中每个对象的所有键值对
         let content = document.createElement('div');
-        content.innerHTML = `<h3>详细信息 </h3>`;
+        content.innerHTML = `<h3>详细信息    ${deal_info_list.is_positionId_catch}</h3>`;
         deal_info_list.forEach(info => {
             let itemDiv = document.createElement('div');
             itemDiv.innerHTML = '<strong></strong>';
