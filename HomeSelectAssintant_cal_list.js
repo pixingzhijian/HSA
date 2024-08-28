@@ -788,11 +788,13 @@
             // 为 id 属性的值添加 href 属性，并将其值设置为 link 属性的值
             if (info.hasOwnProperty('id') && info.hasOwnProperty('link')) {
                 var deal_link = `<a href="${info.link}" target="_blank">${info.id}  ㅤ</a> `;
+                                itemDiv.style.fontSize = '7px';
                 itemDiv.innerHTML = deal_link
 
             }
 
             // 删除 link 属性
+            delete info['id'];
             delete info['link'];
 
 
