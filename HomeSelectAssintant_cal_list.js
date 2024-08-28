@@ -598,21 +598,22 @@
                 // 将悬浮窗添加到页面中
 
                 let popup = make_popup(crab_res, deal_info_list)
-                var unique_deal_info_list = uniqueByProperty(deal_info_list, 'id').map(item => {
-                    return {
-                        id: item.id,
-                        // viewEventId:15431,
-                        // link:https://sh.ke.com/chengjiao/107109353602.html,
-                        dealDate: item.dealDate,
-                        totalPrice: item.totalPrice,
-                        unitPrice: item.unitPrice,
-                        title: item.title,
-                        address: item.address,
-                        // positionInfo:中楼层(共35层) 2002年塔楼,
-                        // dealCycle:挂牌539万\n                                                                                                    成交周期20天};
-                    };
-                })
-                let DealInfoPopup = showDealInfoPopup(unique_deal_info_list, deal_info_list.is_positionId_catch);
+                // LEON  2024年8月28日23:15:40  修改 去除重复房源问题。   暂时不去重
+                // var unique_deal_info_list = uniqueByProperty(deal_info_list, 'id').map(item => {
+                //     return {
+                //         id: item.id,
+                //         // viewEventId:15431,
+                //         // link:https://sh.ke.com/chengjiao/107109353602.html,
+                //         dealDate: item.dealDate,
+                //         totalPrice: item.totalPrice,
+                //         unitPrice: item.unitPrice,
+                //         title: item.title,
+                //         address: item.address,
+                //         // positionInfo:中楼层(共35层) 2002年塔楼,
+                //         // dealCycle:挂牌539万\n                                                                                                    成交周期20天};
+                //     };
+                // })
+                let DealInfoPopup = showDealInfoPopup(deal_info_list, deal_info_list.is_positionId_catch);
 
 
                 // popup.classList.add('popup'); // 添加一个类名以便于样式化
