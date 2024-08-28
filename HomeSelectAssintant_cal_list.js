@@ -109,9 +109,9 @@
     }
 
 
-    download_csv()
+    download_csv_sale()
 
-    function download_csv() {// 创建悬浮窗并添加到页面的左上角
+    function download_csvdownload_csv_sale() {// 创建悬浮窗并添加到页面的左上角
         var overlay = document.createElement('div');
         overlay.style.position = 'fixed';
         overlay.style.left = '10px';
@@ -125,44 +125,42 @@
 
 // 显示当前GM_setValue数据的总条数
         var statusElement = document.createElement('p');
-        statusElement.textContent = '数据条数：未知';
+        statusElement.textContent = '缓存房源：未知';
         overlay.appendChild(statusElement);
 
-// 用于存储所有键值对的数组
-        var items = [];
-
-// 使用GM_listValues获取所有键名
+        // 使用 GM_listValues 获取所有键名
         var keys = GM_listValues();
 
-// 如果GM_listValues返回的键名数量大于0
-        if (keys.length > 0) {
-            // 遍历所有键名，获取对应的值，并将它们存储在items数组中
-            keys.forEach(function (key) {
-                var value = GM_getValue(key);
-                try {
-                    // 尝试将值解析为JSON对象
-                    var parsedValue = JSON.parse(value);
-                    // 将键名和解析后的值作为对象存储在items数组中
-                    items.push({key: key, value: parsedValue});
-                } catch (e) {
-                    console.error('解析GM_setValue中的值失败:', e);
-                }
-            });
+// 使用 filter 方法筛选出以数字 '1' 开头的键名
+        var filteredKeys = keys.filter(key => key.startsWith('1'));
 
-            // 计算数据条数并更新状态元素
-            var totalItems = items.length;
-            statusElement.textContent = '数据条数：' + totalItems;
-        }
+        // 使用 map 方法遍历筛选后的键名数组，获取对应的值，并将它们存储在 items 数组中
+        var items = filteredKeys.map(key => {
+            var value = GM_getValue(key);
+            try {
+                // 尝试将值解析为 JSON 对象
+                var parsedValue = JSON.parse(value);
+                // 返回键名和解析后的值作为对象
+                return {key: key, value: parsedValue};
+            } catch (e) {
+                console.error('解析 缓存房源 GM_getValue 中的值失败:', e);
+                // 如果解析失败，返回 null 或其他错误处理方式
+                return null;
+            }
+        }).filter(item => item !== null); // 移除解析失败的项
 
+        // 计算数据条数并更新状态元素
+        var totalItems = items.length;
+        statusElement.textContent = '缓存房源条数：' + totalItems;
 // 创建一个按钮并添加到悬浮窗中
         var exportButton = document.createElement('button');
-        exportButton.textContent = '导出数据';
+        exportButton.textContent = '导出缓存房源';
         overlay.appendChild(exportButton);
 
 // 为按钮添加点击事件监听器
         exportButton.addEventListener('click', function () {
             if (items.length === 0) {
-                alert('没有可导出的数据！');
+                alert('没有可导出的缓存房源数据！');
                 return;
             }
 
@@ -201,17 +199,109 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url); // 清理URL对象
         });
-   }
+    }
+
+    download_csv_deal()
+
+    function download_csv_deal() {// 创建悬浮窗并添加到页面的左上角
+        var overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.left = '10px';
+        overlay.style.top = '140px';
+        overlay.style.backgroundColor = 'white';
+        overlay.style.padding = '10px';
+        overlay.style.zIndex = '1000';
+        overlay.style.borderRadius = '5px';
+        overlay.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
+        document.body.appendChild(overlay);
+
+// 显示当前GM_setValue数据的总条数
+        var statusElement = document.createElement('p');
+        statusElement.textContent = '缓存成交：未知';
+        overlay.appendChild(statusElement);
+
+        // 使用 GM_listValues 获取所有键名
+        var keys = GM_listValues();
+
+// 使用 filter 方法筛选出以数字 '1' 开头的键名
+        var filteredKeys = keys.filter(key => key.startsWith('5'));
+
+        // 使用 map 方法遍历筛选后的键名数组，获取对应的值，并将它们存储在 items 数组中
+        var items = filteredKeys.map(key => {
+            var value = GM_getValue(key);
+            try {
+                // 尝试将值解析为 JSON 对象
+                var parsedValue = JSON.parse(value);
+                // 返回键名和解析后的值作为对象
+                return {key: key, value: parsedValue};
+            } catch (e) {
+                console.error('解析缓存成交 GM_getValue 中的值失败:', e);
+                // 如果解析失败，返回 null 或其他错误处理方式
+                return null;
+            }
+        }).filter(item => item !== null); // 移除解析失败的项
+
+        // 计算数据条数并更新状态元素
+        var totalItems = items.length;
+        statusElement.textContent = '缓存成交：' + totalItems;
+// 创建一个按钮并添加到悬浮窗中
+        var exportButton = document.createElement('button');
+        exportButton.textContent = '导出缓存成交';
+        overlay.appendChild(exportButton);
+
+// 为按钮添加点击事件监听器
+        exportButton.addEventListener('click', function () {
+            if (items.length === 0) {
+                alert('没有可导出的缓存成交数据！');
+                return;
+            }
+
+            // 获取所有字段名（键名）
+            var fieldNames = getUniqueFieldNames(items);
+            var header = fieldNames.map(function (fieldName) {
+                return `"${fieldName}"`;
+            }).join('|') + '\n';
+
+            // 创建CSV的内容行
+            var csvContent = items.map(function (item) {
+                var values = fieldNames.map(function (fieldName) {
+                    var value = getValueFromObject(item.value, fieldName);
+                    // 如果值是对象或数组，转换为JSON字符串，否则直接转换为字符串
+                    return typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value);
+                });
+                return values.join('|');
+            }).join('\n');
+
+            // 合并标题行和内容行
+            csvContent = header + csvContent;
+
+            // 获取当前日期和时间作为文件名
+            var currentDate = new Date();
+            var dateString = currentDate.toISOString().replace(/:/g, '-').split('.')[0];
+            var fileName = `House_${totalItems}_${dateString}.csv`;
+
+            // 创建Blob对象并触发下载
+            var blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url); // 清理URL对象
+        });
+    }
 
 // 递归函数，用于从嵌套的JSON对象中获取值
-        function getValueFromObject(obj, fieldName) {
-            var fields = fieldName.split('.');
-            var value = obj;
-            for (var i = 0; i < fields.length; i++) {
-                if (value && typeof value === 'object') {
-                    value = value[fields[i]];
-                } else {
-                    return value;
+    function getValueFromObject(obj, fieldName) {
+        var fields = fieldName.split('.');
+        var value = obj;
+        for (var i = 0; i < fields.length; i++) {
+            if (value && typeof value === 'object') {
+                value = value[fields[i]];
+            } else {
+                return value;
                 }
             }
             return value;
