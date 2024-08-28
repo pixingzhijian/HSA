@@ -10,7 +10,7 @@
 // @grant        GM_getValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @version     4.1.1
+// @version     4.1.2
 // @author      Leon
 // @description 2024/8/23 00:33:59
 // @downloadURL http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_union.js

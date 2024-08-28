@@ -782,19 +782,18 @@
         content.innerHTML = `<h3>详细成交信息   ${is_positionId_catch ? '(缓存)' : '(实时)'}</h3>`;
         // 遍历 deal_info_list 数组
         deal_info_list.forEach(info => {
-
-
-            // 删除 link 属性
-            delete info['link'];
-
             // 创建一个 div 元素来显示信息
             let itemDiv = document.createElement('div');
             itemDiv.innerHTML = '<strong></strong>';
             // 为 id 属性的值添加 href 属性，并将其值设置为 link 属性的值
             if (info.hasOwnProperty('id') && info.hasOwnProperty('link')) {
                 var deal_link = `<a href="${info.link}" target="_blank">${info.id}  ㅤ</a> `;
+                itemDiv.innerHTML = deal_link
+
             }
-            itemDiv.appendChild(deal_link);
+
+            // 删除 link 属性
+            delete info['link'];
 
 
             // 遍历对象的键值对
