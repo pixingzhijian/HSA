@@ -111,7 +111,7 @@
 
     download_csv_sale()
 
-    function download_csvdownload_csv_sale() {// 创建悬浮窗并添加到页面的左上角
+    function download_csv_sale() {// 创建悬浮窗并添加到页面的左上角
         var overlay = document.createElement('div');
         overlay.style.position = 'fixed';
         overlay.style.left = '10px';
