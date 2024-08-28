@@ -600,20 +600,21 @@
                 let popup = make_popup(crab_res, deal_info_list)
                 // LEON  2024年8月28日23:15:40  修改 去除重复房源问题。   暂时不去重
                 // var unique_deal_info_list = uniqueByProperty(deal_info_list, 'id').map(item => {
-                //     return {
-                //         id: item.id,
-                //         // viewEventId:15431,
-                //         // link:https://sh.ke.com/chengjiao/107109353602.html,
-                //         dealDate: item.dealDate,
-                //         totalPrice: item.totalPrice,
-                //         unitPrice: item.unitPrice,
-                //         title: item.title,
-                //         address: item.address,
-                //         // positionInfo:中楼层(共35层) 2002年塔楼,
-                //         // dealCycle:挂牌539万\n                                                                                                    成交周期20天};
-                //     };
-                // })
-                let DealInfoPopup = showDealInfoPopup(deal_info_list, deal_info_list.is_positionId_catch);
+                var unique_deal_info_list = deal_info_list.map(item => {
+                    return {
+                        id: item.id,
+                        // viewEventId:15431,
+                        link: item.link,
+                        dealDate: item.dealDate,
+                        totalPrice: item.totalPrice,
+                        unitPrice: item.unitPrice,
+                        title: item.title,
+                        address: item.address,
+                        // positionInfo:中楼层(共35层) 2002年塔楼,
+                        // dealCycle:挂牌539万\n                                                                                                    成交周期20天};
+                    };
+                })
+                let DealInfoPopup = showDealInfoPopup(unique_deal_info_list, deal_info_list.is_positionId_catch);
 
 
                 // popup.classList.add('popup'); // 添加一个类名以便于样式化
@@ -779,22 +780,40 @@
         // 添加内容展示 deal_info_list 中每个对象的所有键值对
         let content = document.createElement('div');
         content.innerHTML = `<h3>详细成交信息   ${is_positionId_catch ? '(缓存)' : '(实时)'}</h3>`;
+        // 遍历 deal_info_list 数组
         deal_info_list.forEach(info => {
+            // 为 id 属性的值添加 href 属性，并将其值设置为 link 属性的值
+            if (info.hasOwnProperty('id') && info.hasOwnProperty('link')) {
+                info.id = `<a href="${info.link}">${info.id}</a>`;
+            }
+
+            // 删除 link 属性
+            delete info['link'];
+
+            // 创建一个 div 元素来显示信息
             let itemDiv = document.createElement('div');
             itemDiv.innerHTML = '<strong></strong>';
+
+            // 遍历对象的键值对
             for (let key in info) {
-                // delete info['address']
-                if (info.hasOwnProperty(key)) {
+                // 过滤掉不想要显示的属性
+                if (key !== 'address' && key !== 'link') { // 这里假设我们不想要显示 'address' 和 'link'
                     let itemKey = document.createElement('span');
                     itemKey.style.fontWeight = 'bold';
                     itemKey.textContent = `${key}:`;
+
                     let itemValue = document.createElement('span');
                     itemValue.textContent = `${info[key]}  ㅤ`;
-                    // itemDiv.appendChild(itemKey);
+
+                    // 将键和值添加到 div 中
+                    itemDiv.appendChild(itemKey);
                     itemDiv.appendChild(itemValue);
                     itemDiv.appendChild(document.createTextNode('\n')); // 添加换行
                 }
             }
+
+            // 将创建好的 div 添加到页面的某个元素中
+            // 假设 content 是页面中已经存在的一个元素
             content.appendChild(itemDiv);
         });
         detailsPopup.appendChild(content);
