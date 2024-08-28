@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @description  选房助手_房源信息精确计算_详情页。在页面上的特定位置显示“平米”前数字的总和。用于计算套内面积。 同时计算得房率，显示得房率等级。便于快速判断房子的性价比。
 // @author       Leon
-// @match        https://*.ke.com/ershoufang/
+// @match        https://*.ke.com/ershoufang/*
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_listValues
@@ -156,7 +156,7 @@
             // console.log(label);
 
             var labelContent = label ? label.textContent.trim() : '';
-            console.log(labelContent);
+            // console.log(labelContent);
 
             // 获取对应的值，排除空格和换行符
             var value = item.textContent.trim().replace(/\s+/g, ' ').replace(labelContent, ' ').trim();
@@ -192,6 +192,7 @@
             var typeInfoText = typeInfo.textContent.trim();
             var areaInfoText = areaInfo.textContent.trim();
             var communityNameText = communityName.textContent.trim();
+            var communityNameHref = communityName.href.match(/\/(\d+)/);
             var areaNameText = areaName.textContent.trim();
 
             // 获取页面URL中的贝壳编号
@@ -211,6 +212,7 @@
                 },
                 '区域信息': {
                     '小区名称': communityNameText,
+                    'communityId': communityNameHref[1],
                     '所在区域': areaNameText
                 },
                 '贝壳编号': 贝壳编号 ? 贝壳编号[1] : null, // 确保提取的编号是字符串类型
@@ -226,13 +228,201 @@
         // 返回房屋信息JSON对象
         return houseInfo;
     }
+
     get_tiny_house_info()
 
+
+    // 使悬浮窗可拖动的函数
+    function makeDraggable(element) {
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
+        element.onmousedown = function (event) {
+            isDragging = true;
+            initialX = event.clientX - element.offsetLeft;
+            initialY = event.clientY - element.offsetTop;
+            document.onmousemove = function moveAt(e) {
+                if (isDragging) {
+                    element.style.left = e.clientX - initialX + 'px';
+                    element.style.top = e.clientY - initialY + 'px';
+                }
+            };
+        };
+        document.onmouseup = function () {
+            isDragging = false;
+            document.onmousemove = null;
+        };
+    }
+
+
+    // 创建一个新的悬浮窗并展示 deal_info_list 的函数
+    function showDealInfoPopup(deal_info_list) {
+        // 创建新的悬浮窗元素
+        let detailsPopup = document.createElement('div');
+        detailsPopup.style.position = 'absolute';
+        detailsPopup.style.top = '5px'; // 根据需要调整位置
+        detailsPopup.style.left = '5px'; // 根据需要调整位置
+        detailsPopup.style.backgroundColor = '#fff';
+        detailsPopup.style.padding = '10px';
+        detailsPopup.style.border = '1px solid #ccc';
+        detailsPopup.style.zIndex = '9999';
+        detailsPopup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
+        detailsPopup.style.opacity = '0.9';
+        detailsPopup.style.fontSize = '7px';
+        detailsPopup.style.fontFamily = 'Arial, sans-serif';
+        detailsPopup.style.color = '#333';
+        // detailsPopup.style.width = '300px'; // 根据需要调整宽度
+        detailsPopup.style.height = 'auto'; // 默认高度为auto，以便内容可以自适应
+        detailsPopup.style.textAlign = 'left';
+        detailsPopup.style.borderRadius = '5px';
+        detailsPopup.style.display = 'block'; // 默认显示悬浮窗
+
+        // 添加内容展示 deal_info_list 中每个对象的所有键值对
+        let content = document.createElement('div');
+        content.innerHTML = `<h3>详细信息   ${deal_info_list.is_positionId_catch ? '(缓存)' : '(实时)'}</h3>`;
+        deal_info_list.forEach(info => {
+            let itemDiv = document.createElement('div');
+            itemDiv.innerHTML = '<strong></strong>';
+            for (let key in info) {
+                // delete info['address']
+                if (info.hasOwnProperty(key)) {
+                    let itemKey = document.createElement('span');
+                    itemKey.style.fontWeight = 'bold';
+                    itemKey.textContent = `${key}:`;
+                    let itemValue = document.createElement('span');
+                    itemValue.textContent = `${info[key]}  ㅤ`;
+                    // itemDiv.appendChild(itemKey);
+                    itemDiv.appendChild(itemValue);
+                    itemDiv.appendChild(document.createTextNode('\n')); // 添加换行
+                }
+            }
+            content.appendChild(itemDiv);
+        });
+        detailsPopup.appendChild(content);
+
+        // 将新的悬浮窗添加到页面中
+        document.body.appendChild(detailsPopup);
+
+        // 使新的悬浮窗可拖动
+        makeDraggable(detailsPopup);
+        return detailsPopup;
+    }
+
+    function make_popup(crab_res_in, deal_info_list) {
+        // 创建悬浮窗元素
+        let popup = document.createElement('div');
+        popup.style.position = 'absolute';
+        popup.style.top = '130px';
+        popup.style.right = '30px';
+        popup.style.backgroundColor = '#fff';
+        popup.style.padding = '10px';
+        popup.style.border = '1px solid #ccc';
+        popup.style.zIndex = '9999';
+        popup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.3)';
+        popup.style.opacity = '0.9';
+        popup.style.fontSize = '14px';
+        popup.style.fontFamily = 'Arial, sans-serif';
+        popup.style.color = '#333';
+        popup.style.width = '200px';
+        popup.style.height = 'auto'; // 默认高度为auto，以便内容可以自适应
+        popup.style.textAlign = 'center';
+        popup.style.borderRadius = '5px';
+        popup.style.display = 'block'; // 默认显示悬浮窗
+        popup.classList.add('popup'); // 添加一个类名以便于样式化
+        popup.id = 'popup-sale-' + crab_res_in.id + '-' + Date.now();
+
+        // 添加按钮，用于打开新的悬浮窗并展示 deal_info_list
+        let openDetailsButton = document.createElement('button');
+        openDetailsButton.textContent = '详';
+        openDetailsButton.style.position = 'absolute';
+        openDetailsButton.style.top = '5px';
+        openDetailsButton.style.right = '10px';
+        openDetailsButton.style.cursor = 'pointer';
+        openDetailsButton.style.color = '#fff';
+        openDetailsButton.style.backgroundColor = '#333';
+        openDetailsButton.style.padding = '5px 10px';
+        openDetailsButton.style.borderRadius = '5px';
+        openDetailsButton.style.fontSize = '12px';
+        openDetailsButton.onclick = function () {
+            // 创建并显示新的悬浮窗
+
+        };
+        popup.appendChild(openDetailsButton);
+
+
+        makeDraggable(popup); // 使悬浮窗可拖动
+
+        // 将悬浮窗添加到页面中
+        // document.body.appendChild(popup);
+
+
+        // 根据得房率的范围设置不同的颜色
+        var efficiencyRates = parseFloat(crab_res_in.cal_res.efficiencyRate * 100); // 确保转换为数字
+
+        let color;
+        if (efficiencyRates >= 80 && efficiencyRates <= 100) {
+            color = 'blue'; // 绿色字体
+        } else if (efficiencyRates >= 75 && efficiencyRates <= 80) {
+            color = 'green'; // 黄色字体
+        } else if (efficiencyRates >= 70 && efficiencyRates < 75) {
+            color = '#bfbf0f'; // 黄色字体
+        } else if (efficiencyRates >= 63 && efficiencyRates < 70) {
+            color = 'orange'; // 橙色字体
+        } else if (efficiencyRates >= 40 && efficiencyRates < 63) {
+            color = 'red'; // 红色字体
+        } else {
+            // 如果得房率不在预期范围内，可以设置一个默认颜色或者不显示颜色
+            color = 'gray'; // 默认颜色
+        }
+
+        console.log('***crab_res_in*******', crab_res_in)
+        // var base_room_info = get_base_room_info(document)
+        // 将计算的数据添加到悬浮窗中
+        popup.innerHTML += '<h3>房屋信息' + (crab_res_in.is_catch ? ' (缓存)' : '(实时)') + '</h3>';
+
+        popup.innerHTML += `<p>建筑类型: ${crab_res_in.get_base_room_info.建筑类型} </p>`;
+
+        popup.innerHTML += `<p>总价: ${crab_res_in.cal_res.total} 万元</p>`;
+        popup.innerHTML += `<p style="color: ${color};">得房率: ${efficiencyRates}%</p>`;
+
+        popup.innerHTML += `<p>套内面积总和: ${crab_res_in.cal_res.totalArea} 平米</p>`;
+
+        popup.innerHTML += `<p>建筑面积: ${crab_res_in.cal_res.buildingArea} 平米</p>`;
+
+
+        // 检查抵押信息是否为"无抵押"
+        var displayMortgageInfo = crab_res_in.get_base_room_info['抵押信息'] !== '无抵押' ? `<span style="color: rgba(255,89,0,0.81);">抵押: ${crab_res_in.get_base_room_info['抵押信息']}</span>` : '';
+        var displaySellYearInfo = crab_res_in.get_base_room_info['房屋年限'] !== '满五年' ? `<span style="color: #ff4800;">年限: ${crab_res_in.get_base_room_info['房屋年限']}</span>` : '';
+        var displayHoldInfo = crab_res_in.get_base_room_info['产权所属'] !== '非共有' ? `<span style="color: #993005;">产权: ${crab_res_in.get_base_room_info['产权所属']}</span>` : '';
+
+        var dynatiData = `<p> ${displaySellYearInfo}    ${displayMortgageInfo}  ${displayHoldInfo}</p>`;
+
+        popup.innerHTML += dynatiData
+        popup.innerHTML += `<p>单价:${crab_res_in.cal_res.unitPrice} 万  建面单价:${crab_res_in.cal_res.realPerice} 万  </p>`;
+        popup.innerHTML += `<p>建面单价折扣率: ${crab_res_in.cal_res.realPericeRate} %</p>`;
+
+        return popup
+    }
+
+
+    // 去重函数，基于对象的 id 属性
+    function uniqueByProperty(list, property) {
+        const uniqueList = [];
+        const propertySet = new Set();
+
+        list.forEach(item => {
+            const propertyValue = item[property];
+            if (!propertySet.has(propertyValue)) {
+                uniqueList.push(item);
+                propertySet.add(propertyValue);
+            }
+        });
+        return uniqueList
+    }
 
     // 假设我们要在id为"target"的元素后面显示计算结果
     var targetElement = document.getElementById('infoList');
     if (!targetElement) {
-        console.error('目标元素未找到');
+        console.error('目标元素 infoList 未找到');
         return;
     }
 //   2024年8月23日19:33:55  LEON 作废， 计算会有提取缺失，反复实验后重新计算。
@@ -273,7 +463,7 @@
         // 提取数字部分并转换为浮点数
         let areaNumber = parseFloat(item.area.replace('平米', ''));
         // 累加到总和中
-        console.log('totalArea  item', item)
+        // console.log('totalArea  item', item)
 
         totalArea += areaNumber;
     });
@@ -383,6 +573,42 @@
 
     // 使悬浮窗显示
     popup.style.display = 'block';
+
+
+    const positionId = crab_res.get_tiny_house_info.区域信息.communityId   // 小区使用小区ID
+    // 此处开始构造小区信息
+    let deal_info_list_catch = GM_getValue(positionId)
+    if (deal_info_list_catch) {
+        deal_info_list_catch.is_positionId_catch = true
+        var deal_info_list = deal_info_list_catch
+        console.log('小区成交信息 deal_info_list  已找到缓存', positionId, deal_info_list);
+
+
+        if (deal_info_list) {
+            // 将悬浮窗添加到页面中
+
+            let popup = make_popup(crab_res, deal_info_list)
+            var unique_deal_info_list = uniqueByProperty(deal_info_list, 'id').map(item => {
+                return {
+                    id: item.id,
+                    // viewEventId:15431,
+                    // link:https://sh.ke.com/chengjiao/107109353602.html,
+                    dealDate: item.dealDate,
+                    totalPrice: item.totalPrice,
+                    unitPrice: item.unitPrice,
+                    title: item.title,
+                    address: item.address,
+                    // positionInfo:中楼层(共35层) 2002年塔楼,
+                    // dealCycle:挂牌539万\n                                                                                                    成交周期20天};
+                };
+            })
+            let DealInfoPopup = showDealInfoPopup(unique_deal_info_list);
+            document.body.appendChild(DealInfoPopup);
+
+        }
+    } else {
+        console.error('小区未查询到缓存 positionId', positionId)
+    }
 
 
 })();

@@ -201,7 +201,7 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url); // 清理URL对象
         });
-
+   }
 
 // 递归函数，用于从嵌套的JSON对象中获取值
         function getValueFromObject(obj, fieldName) {
@@ -237,7 +237,7 @@
             });
             return Array.from(new Set(allFieldNames));
         }
-    }
+
 
     // clear_g()
 
@@ -807,7 +807,7 @@
 
         // 添加内容展示 deal_info_list 中每个对象的所有键值对
         let content = document.createElement('div');
-            content.innerHTML = `<h3>详细信息   (${deal_info_list.is_positionId_catch ? '(缓存)' : '(实时)'})</h3>`;
+        content.innerHTML = `<h3>详细信息   ${deal_info_list.is_positionId_catch ? '(缓存)' : '(实时)'}</h3>`;
         deal_info_list.forEach(info => {
             let itemDiv = document.createElement('div');
             itemDiv.innerHTML = '<strong></strong>';
@@ -1006,6 +1006,7 @@
             var typeInfoText = typeInfo.textContent.trim();
             var areaInfoText = areaInfo.textContent.trim();
             var communityNameText = communityName.textContent.trim();
+            var communityNameHref = communityName.href.match(/\/(\d+)/);
             var areaNameText = areaName.textContent.trim();
 
             // 获取页面URL中的贝壳编号
@@ -1025,6 +1026,7 @@
                 },
                 '区域信息': {
                     '小区名称': communityNameText,
+                    'communityId': communityNameHref[1],
                     '所在区域': areaNameText
                 },
                 '贝壳编号': 贝壳编号 ? 贝壳编号[1] : null, // 确保提取的编号是字符串类型
