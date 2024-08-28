@@ -10,7 +10,7 @@
 // @grant        GM_getValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @version     4.1.0
+// @version     4.1.1
 // @author      Leon
 // @description 2024/8/23 00:33:59
 // @downloadURL http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_union.js
@@ -18,6 +18,7 @@
 // @note 6.0.0 TODO:运用模型选房，运用机器学习模型进行评分
 // @note 5.0.1 TODO:快捷可视化分析
 // @note 5.0.0 TODO: 远端保存缓存数据，减轻服务器压力
+// @note 4.1.1 优化ID直接跳转到房源详情页。
 // @note 4.1.0 大更新， 增加小区成交记录中跳转至成交房源的功能。 可以通过ID直接跳转到房源详情页。
 // @note 4.0.9 LEON  2024年8月28日23:15:40  修改 去除重复房源问题。   暂时不去重
 // @note 4.0.8 优化文字

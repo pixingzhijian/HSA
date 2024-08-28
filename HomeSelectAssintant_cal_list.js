@@ -782,10 +782,7 @@
         content.innerHTML = `<h3>详细成交信息   ${is_positionId_catch ? '(缓存)' : '(实时)'}</h3>`;
         // 遍历 deal_info_list 数组
         deal_info_list.forEach(info => {
-            // 为 id 属性的值添加 href 属性，并将其值设置为 link 属性的值
-            if (info.hasOwnProperty('id') && info.hasOwnProperty('link')) {
-                info.id = `<a href="${info.link}">${info.id}</a>`;
-            }
+
 
             // 删除 link 属性
             delete info['link'];
@@ -793,20 +790,26 @@
             // 创建一个 div 元素来显示信息
             let itemDiv = document.createElement('div');
             itemDiv.innerHTML = '<strong></strong>';
+            // 为 id 属性的值添加 href 属性，并将其值设置为 link 属性的值
+            if (info.hasOwnProperty('id') && info.hasOwnProperty('link')) {
+                var deal_link = `<a href="${info.link}" target="_blank">${info.id}  ㅤ</a> `;
+            }
+            itemDiv.appendChild(deal_link);
+
 
             // 遍历对象的键值对
             for (let key in info) {
                 // 过滤掉不想要显示的属性
                 if (key !== 'address' && key !== 'link') { // 这里假设我们不想要显示 'address' 和 'link'
                     let itemKey = document.createElement('span');
-                    itemKey.style.fontWeight = 'bold';
+                    // itemKey.style.fontWeight = 'bold';
                     itemKey.textContent = `${key}:`;
 
                     let itemValue = document.createElement('span');
                     itemValue.textContent = `${info[key]}  ㅤ`;
 
                     // 将键和值添加到 div 中
-                    itemDiv.appendChild(itemKey);
+                    // itemDiv.appendChild(itemKey);
                     itemDiv.appendChild(itemValue);
                     itemDiv.appendChild(document.createTextNode('\n')); // 添加换行
                 }
