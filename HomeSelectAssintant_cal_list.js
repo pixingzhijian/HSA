@@ -787,8 +787,7 @@
             itemDiv.innerHTML = '<strong></strong>';
             // 为 id 属性的值添加 href 属性，并将其值设置为 link 属性的值
             if (info.hasOwnProperty('id') && info.hasOwnProperty('link')) {
-                var deal_link = `<a href="${info.link}" target="_blank">${info.id}  ㅤ</a> `;
-                                itemDiv.style.fontSize = '7px';
+                var deal_link = `<a style="font-size: 7px;" href="${info.link}" target="_blank">${info.id}  ㅤ</a> `;
                 itemDiv.innerHTML = deal_link
 
             }
