@@ -83,6 +83,11 @@
     elementsToRemove.forEach(function (element) {
         element.remove();
     });
+    var elementsToRemove = document.querySelectorAll('#beike > div.sellListPage > div.content > div.leftContent > div > ul > li.list_goodhouse_daoliu');
+    // 遍历并删除这些元素   广告 删除
+    elementsToRemove.forEach(function (element) {
+        element.remove();
+    });
 
 
     // del_wrong_data()

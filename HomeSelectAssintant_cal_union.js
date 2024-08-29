@@ -10,7 +10,7 @@
 // @grant        GM_getValue
 // @grant        GM_listValues
 // @grant        GM_deleteValue
-// @version     4.2.1
+// @version     4.2.2
 // @author      Leon
 // @description 2024/8/23 00:33:59
 // @downloadURL http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_union.js
@@ -18,6 +18,7 @@
 // @note 6.0.0 TODO:运用模型选房，运用机器学习模型进行评分
 // @note 5.0.1 TODO:快捷可视化分析
 // @note 5.0.0 TODO: 远端保存缓存数据，减轻服务器压力
+// @note 4.2.2 新增删除页面中间的列表广告。
 // @note 4.2.1 拆分解析两个缓存文件的保存数据，
 // @note 4.2.0 优化下载问题。  拆分下载为小区成交和在售房源。
 // @note 4.1.1 优化ID直接跳转到房源详情页。
