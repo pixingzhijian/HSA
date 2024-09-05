@@ -19,6 +19,7 @@
 // @note 5.0.1 TODO:快捷可视化分析
 // @note 5.0.0 TODO: 远端保存缓存数据，减轻服务器压力
 
+// @note 4.3.0 更新新增地图页面的房源列表查询
 // @note 4.2.3 更新脚本描述
 // @note 4.2.2 新增删除页面中间的列表广告。
 // @note 4.2.1 拆分解析两个缓存文件的保存数据，
@@ -103,6 +104,7 @@
          '/ershoufang/*/': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_list.js',
          '/ershoufang/*': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_detail.js',
          '/chengjiao/*': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_deal.js',
+         'map/*/*/*': 'http://git.nling.site/adminplokijn/HSA/raw/master/HomeSelectAssintant_cal_deal.js',
          // 更多子目录和对应的脚本文件...
      };
 
